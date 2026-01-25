@@ -661,7 +661,7 @@ body{
 .toast{
   position: fixed;
   left: 50%;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%) translateY(14px);
   padding: 10px 12px;
   border-radius: 999px;
@@ -684,6 +684,133 @@ body{
 .toast.show{
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* =========================
+   Mobile-only adjustments
+   (Δεν επηρεάζουν desktop)
+   ========================= */
+
+@media (max-width: 520px){
+  /* πιο “σφιχτό” header */
+  .topbar{
+    padding: 10px 12px;
+  }
+
+  .brand{
+    gap: 10px;
+  }
+
+  .logo{
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .brand-text h1{
+    font-size: 16px;
+  }
+  .brand-text p{
+    font-size: 12px;
+  }
+
+  .header-actions{
+    gap: 6px;
+  }
+  .btn-sm{
+    padding: 7px 9px;
+    font-size: 12px;
+    border-radius: 13px;
+  }
+
+  /* layout/panels πιο compact */
+  .layout{
+    padding: 12px;
+    gap: 12px;
+  }
+  .panel{
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .panel-title{
+    margin-bottom: 8px;
+  }
+  .panel-title h2{
+    font-size: 15px;
+  }
+  .pill{
+    padding: 5px 9px;
+    font-size: 11.5px;
+  }
+
+  /* camera: πιο ψηλό/ευανάγνωστο */
+  .ar-container{
+    height: 340px; /* πιο “AR-first” στο κινητό */
+    border-radius: 20px;
+  }
+
+  .camera-hint{
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+
+  /* reticle ελαφρώς μικρότερο */
+  .reticle-ring{
+    width: 126px;
+    height: 126px;
+  }
+  .reticle-crosshair{
+    width: 130px;
+    height: 130px;
+  }
+
+  /* status: 2 στήλες για καλύτερη χρήση χώρου */
+  .status-grid{
+    grid-template-columns: 1fr 1fr;
+  }
+  .status-card:nth-child(3){
+    grid-column: 1 / -1; /* το Debug πιάνει όλο το πλάτος */
+  }
+
+  .chip{
+    font-size: 12.5px;
+    padding: 7px 9px;
+  }
+
+  /* buttons full width stacked */
+  .buttons{
+    flex-direction: column;
+  }
+  .buttons .btn{
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* αποτέλεσμα: λίγο πιο “fit” */
+  .rendered{
+    font-size: 20px;
+    padding: 12px;
+  }
+  .code{
+    font-size: 12.5px;
+    padding: 11px;
+  }
+
+  /* toast να μην είναι υπερβολικά πλατύ */
+  .toast{
+    max-width: calc(100vw - 18px);
+  }
+
+  /* debug preview λίγο μικρότερο */
+  .video-debug{
+    width: 160px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Motion accessibility */
