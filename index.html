@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tag-it-AR (MVP)</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- A-Frame + MindAR (A-Frame build) -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div>
+        <h1>Tag-it-AR</h1>
+        <p>Σκανάρισε μία κάρτα και δες τι κάνει το HTML tag.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel panel-scan">
+      <div class="panel-title">
+        <h2>Κάμερα / Σάρωση</h2>
+        <span class="badge">Level 1</span>
+      </div>
+
+      <div class="helper">
+        Στόχευσε την κάρτα μέσα στον κύκλο.
+      </div>
+
+      <div class="ar-container" id="arWrap">
+        <!--
+          ΣΗΜΑΝΤΙΚΟ: κρατάμε το mindar-image “απλό” (χωρίς videoSettings object) για σταθερότητα.
+        -->
+        <a-scene
+          id="scene"
+          embedded
+          mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
+          vr-mode-ui="enabled: false"
+          device-orientation-permission-ui="enabled: false"
+          renderer="colorManagement: true, physicallyCorrectLights"
+        >
+          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+          <!-- Targets 0..9 -->
+          <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
+          <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
+          <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
+          <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
+          <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
+          <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
+          <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
+          <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
+          <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
+          <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
+        </a-scene>
+
+        <!-- Στόχος/Δείκτης -->
+        <div class="reticle" aria-hidden="true">
+          <div class="reticle-ring"></div>
+          <div class="reticle-dot"></div>
+        </div>
+
+        <!-- Debug preview -->
+        <div id="videoDebugBox" class="video-debug">
+          <div class="video-debug-title">Debug camera preview</div>
+          <video id="videoDebug" autoplay playsinline muted></video>
+        </div>
+      </div>
+
+      <div class="status">
+        <div><strong>Κατάσταση:</strong> <span id="statusText">Φόρτωση…</span></div>
+        <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
+        <div><strong>Debug:</strong> <span id="debugText">—</span></div>
+      </div>
+
+      <div class="buttons">
+        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη Σάρωσης</button>
+        <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
+      </div>
+    </section>
+
+    <section class="panel panel-result">
+      <div class="panel-title">
+        <h2>Αποτέλεσμα</h2>
+        <span class="badge badge-green">HTML</span>
+      </div>
+
+      <div class="result-block">
+        <p class="label">Κείμενο (απόδοση):</p>
+        <div id="rendered" class="rendered">Hello World!</div>
+      </div>
+
+      <div class="result-block">
+        <p class="label">Κώδικας HTML:</p>
+        <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
+      </div>
+
+      <div class="tip">
+        Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το κείμενο επιστρέφει στο αρχικό.
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
