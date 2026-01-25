@@ -29,9 +29,6 @@
         <button id="themeBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή θέματος">
           Θέμα
         </button>
-        <button id="debugBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή debug preview">
-          Debug
-        </button>
       </div>
     </div>
   </header>
@@ -88,11 +85,6 @@
         <div class="camera-hint" aria-hidden="true">
           Κράτησε την κάρτα στο κέντρο
         </div>
-
-        <div id="videoDebugBox" class="video-debug" aria-live="polite">
-          <div class="video-debug-title">Debug camera preview</div>
-          <video id="videoDebug" autoplay playsinline muted></video>
-        </div>
       </div>
 
       <div class="status-grid">
@@ -107,13 +99,6 @@
           <div class="status-label">Εντοπίστηκε</div>
           <div class="status-value">
             <span class="chip chip-green" id="detectedTag">—</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Debug</div>
-          <div class="status-value">
-            <span class="chip chip-neutral" id="debugText">—</span>
           </div>
         </div>
       </div>
@@ -137,12 +122,12 @@
         <span class="pill pill-neutral">Preview</span>
       </div>
 
-      <div class="result-block">
+      <div class="result-block result-main">
         <p class="label">Κείμενο (απόδοση):</p>
         <div id="rendered" class="rendered">Hello World!</div>
       </div>
 
-      <div class="result-block">
+      <div class="result-block result-code">
         <div class="label-row">
           <p class="label">Κώδικας HTML:</p>
           <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">Αντιγραφή</button>
