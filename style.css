@@ -1,150 +1,798 @@
-<!doctype html>
-<html lang="el">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tag-it-AR (MVP)</title>
+/* =========================
+   Tag-it-AR — Playful UI
+   ========================= */
 
-  <link rel="stylesheet" href="style.css" />
+:root{
+  --topbarH: 72px;
 
-  <!-- A-Frame + MindAR (A-Frame build) -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-</head>
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo" aria-hidden="true">
-        <span class="logo-letter">T</span>
-        <span class="logo-spark" aria-hidden="true"></span>
-      </div>
+  /* Playful palette */
+  --bg0: #fff7fb;
+  --bg1: #f5fbff;
+  --panel: rgba(255,255,255,0.82);
 
-      <div class="brand-text">
-        <h1>Tag-it-AR</h1>
-        <p>Σκανάρισε μία κάρτα και δες τι κάνει το HTML tag.</p>
-      </div>
+  --text: #0f172a;
+  --muted: #475569;
 
-      <div class="header-actions">
-        <button id="themeBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή θέματος">
-          Θέμα
-        </button>
-      </div>
-    </div>
-  </header>
+  --blue: #2563eb;
+  --green: #22c55e;
+  --pink: #ec4899;
+  --amber: #f59e0b;
+  --violet: #7c3aed;
 
-  <main class="layout">
-    <section class="panel panel-scan">
-      <div class="panel-title">
-        <div class="panel-title-left">
-          <h2>Κάμερα / Σάρωση</h2>
-          <span class="pill pill-blue">Level 1</span>
-        </div>
-        <span class="pill pill-neutral" id="scanPill">Ready</span>
-      </div>
+  --border: rgba(15, 23, 42, 0.10);
+  --border2: rgba(15, 23, 42, 0.16);
 
-      <div class="helper">
-        <span class="helper-dot" aria-hidden="true"></span>
-        <span>Στόχευσε την κάρτα μέσα στον κύκλο. Κράτα την σταθερή για 1–2s.</span>
-      </div>
+  --shadow: 0 18px 44px rgba(15, 23, 42, 0.10);
+  --shadow2: 0 12px 26px rgba(15, 23, 42, 0.10);
 
-      <div class="ar-container" id="arWrap">
-        <a-scene
-          id="scene"
-          embedded
-          mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
-          vr-mode-ui="enabled: false"
-          device-orientation-permission-ui="enabled: false"
-          renderer="colorManagement: true, physicallyCorrectLights"
-        >
-          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  --r-xl: 22px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 12px;
 
-          <!-- Targets 0..9 -->
-          <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
-          <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
-          <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
-          <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
-          <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
-          <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
-          <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
-          <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
-          <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
-          <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
-        </a-scene>
+  --space: 16px;
 
-        <div class="camera-overlay" aria-hidden="true"></div>
+  --focus: rgba(37,99,235,0.35);
+}
 
-        <div class="reticle" aria-hidden="true">
-          <div class="reticle-ring"></div>
-          <div class="reticle-crosshair">
-            <span></span><span></span>
-          </div>
-          <div class="reticle-dot"></div>
-        </div>
+:root[data-theme="dark"]{
+  --bg0: #070a12;
+  --bg1: #0b1020;
+  --panel: rgba(255,255,255,0.06);
 
-        <div class="camera-hint" aria-hidden="true">
-          Κράτησε την κάρτα στο κέντρο
-        </div>
-      </div>
+  --text: #e5e7eb;
+  --muted: #a3aab8;
 
-      <!-- Desktop: φαίνεται κανονικά. Mobile: κρύβεται με CSS -->
-      <div class="status-grid">
-        <div class="status-card">
-          <div class="status-label">Κατάσταση</div>
-          <div class="status-value">
-            <span class="chip chip-blue" id="statusText">Φόρτωση…</span>
-          </div>
-        </div>
+  --border: rgba(255,255,255,0.12);
+  --border2: rgba(255,255,255,0.18);
 
-        <div class="status-card">
-          <div class="status-label">Εντοπίστηκε</div>
-          <div class="status-value">
-            <span class="chip chip-green" id="detectedTag">—</span>
-          </div>
-        </div>
-      </div>
+  --shadow: 0 18px 44px rgba(0,0,0,0.55);
+  --shadow2: 0 12px 26px rgba(0,0,0,0.45);
 
-      <!-- Στο mobile θα “πάρουν τη θέση” του status-grid -->
-      <div class="buttons">
-        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη Σάρωσης</button>
-        <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
-      </div>
+  --focus: rgba(147,197,253,0.30);
+}
 
-      <div class="mini-note">
-        Συμβουλή: Χρησιμοποίησε <strong>http://localhost</strong> ή <strong>https</strong> για άδεια κάμερας.
-      </div>
-    </section>
+*{ box-sizing: border-box; }
+html, body{ height: 100%; }
 
-    <section class="panel panel-result">
-      <div class="panel-title">
-        <div class="panel-title-left">
-          <h2>Αποτέλεσμα</h2>
-          <span class="pill pill-green">HTML</span>
-        </div>
-        <span class="pill pill-neutral">Preview</span>
-      </div>
+body{
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background:
+    radial-gradient(1100px 650px at 10% -10%, rgba(236,72,153,0.18), transparent 55%),
+    radial-gradient(900px 650px at 90% 0%, rgba(37,99,235,0.18), transparent 55%),
+    radial-gradient(850px 650px at 70% 110%, rgba(34,197,94,0.16), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
 
-      <div class="result-block result-main">
-        <p class="label">Κείμενο (απόδοση):</p>
-        <div id="rendered" class="rendered">Hello World!</div>
-      </div>
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg0: #070a12;
+    --bg1: #0b1020;
+    --panel: rgba(255,255,255,0.06);
 
-      <div class="result-block result-code">
-        <div class="label-row">
-          <p class="label">Κώδικας HTML:</p>
-          <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">Αντιγραφή</button>
-        </div>
-        <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
-      </div>
+    --text: #e5e7eb;
+    --muted: #a3aab8;
 
-      <div class="tip">
-        Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το κείμενο επιστρέφει στο αρχικό.
-      </div>
-    </section>
-  </main>
+    --border: rgba(255,255,255,0.12);
+    --border2: rgba(255,255,255,0.18);
 
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    --shadow: 0 18px 44px rgba(0,0,0,0.55);
+    --shadow2: 0 12px 26px rgba(0,0,0,0.45);
 
-  <script src="app.js"></script>
-</body>
-</html>
+    --focus: rgba(147,197,253,0.30);
+  }
+}
+
+/* =========================
+   Topbar
+   ========================= */
+
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(12px);
+}
+:root[data-theme="dark"] .topbar{
+  background: rgba(10, 14, 28, 0.65);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+}
+
+.brand-text h1{
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.25px;
+}
+.brand-text p{
+  margin: 2px 0 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.header-actions{
+  margin-left: auto;
+  display:flex;
+  gap: 8px;
+}
+
+.logo{
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display:grid;
+  place-items:center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow2);
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  border: 1px solid rgba(255,255,255,0.25);
+}
+.logo-letter{
+  font-weight: 900;
+  color: rgba(255,255,255,0.98);
+  letter-spacing: -0.5px;
+}
+.logo::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 55%),
+    radial-gradient(circle at 70% 80%, rgba(255,255,255,0.20), transparent 55%);
+  transform: rotate(10deg);
+}
+.logo-spark{
+  position:absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.85);
+  top: 10px;
+  right: 10px;
+  box-shadow: 0 0 0 8px rgba(236,72,153,0.18);
+}
+
+/* =========================
+   Layout / Panels
+   ========================= */
+
+.layout{
+  display:grid;
+  gap: var(--space);
+  padding: var(--space);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px){
+  .layout{ grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+.panel{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.panel::after{
+  content:"";
+  position:absolute;
+  inset: -2px;
+  pointer-events:none;
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(400px 120px at 20% 0%, rgba(236,72,153,0.10), transparent 60%),
+    radial-gradient(420px 140px at 80% 0%, rgba(37,99,235,0.10), transparent 60%);
+  opacity: 0.9;
+}
+
+.panel-scan{ border-top: 8px solid color-mix(in srgb, var(--blue) 70%, var(--pink) 30%); }
+.panel-result{ border-top: 8px solid color-mix(in srgb, var(--green) 70%, var(--amber) 30%); }
+
+.panel-title{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+}
+.panel-title-left{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.panel-title h2{
+  margin:0;
+  font-size: 16px;
+  letter-spacing: -0.2px;
+}
+
+/* Pills */
+.pill{
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.65);
+  color: var(--muted);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+}
+:root[data-theme="dark"] .pill{
+  background: rgba(255,255,255,0.08);
+}
+.pill-blue{
+  border-color: rgba(37,99,235,0.22);
+  color: color-mix(in srgb, var(--blue) 85%, var(--text) 15%);
+  background: rgba(37,99,235,0.10);
+}
+.pill-green{
+  border-color: rgba(34,197,94,0.22);
+  color: color-mix(in srgb, var(--green) 85%, var(--text) 15%);
+  background: rgba(34,197,94,0.10);
+}
+.pill-neutral{
+  border-color: var(--border);
+}
+
+/* Helper */
+.helper{
+  position: relative;
+  z-index: 2;
+  display:flex;
+  align-items:flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.16);
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  margin-bottom: 10px;
+}
+.helper-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+  box-shadow: 0 0 0 7px rgba(236,72,153,0.12);
+}
+
+/* =========================
+   AR container (MindAR layering preserved)
+   ========================= */
+
+.ar-container{
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 260px;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border2);
+  box-shadow: var(--shadow2);
+  transform: translateZ(0);
+}
+@media (min-width: 900px){ .ar-container{ height: 240px; } }
+@media (max-width: 420px){ .ar-container{ height: 300px; } }
+
+.ar-container a-scene{
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Camera video του MindAR (μόνο αυτό) */
+.ar-container a-scene video{
+  position:absolute !important;
+  top:0; left:0;
+  width:100% !important;
+  height:100% !important;
+  object-fit: cover;
+  z-index: 1 !important;
+  background: #000;
+}
+
+/* Canvas πάνω, διαφανές */
+.ar-container canvas{
+  position:absolute !important;
+  top:0; left:0;
+  width:100% !important;
+  height:100% !important;
+  z-index: 2 !important;
+  background: transparent !important;
+}
+
+.ar-container .a-canvas,
+.ar-container .a-enter-vr{
+  z-index: 3 !important;
+}
+
+/* Overlay vibe */
+.camera-overlay{
+  position:absolute;
+  inset:0;
+  z-index: 8;
+  pointer-events:none;
+  background:
+    radial-gradient(800px 280px at 50% 0%, rgba(236,72,153,0.14), transparent 60%),
+    radial-gradient(900px 320px at 50% 110%, rgba(34,197,94,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.38), transparent 32%),
+    linear-gradient(0deg, rgba(0,0,0,0.34), transparent 38%);
+  mix-blend-mode: normal;
+}
+
+/* Reticle */
+.reticle{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index: 20;
+  pointer-events:none;
+}
+
+.reticle-ring{
+  width: 136px;
+  height: 136px;
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.90);
+  box-shadow:
+    0 0 0 10px rgba(37,99,235,0.18),
+    0 16px 44px rgba(0,0,0,0.26);
+  transform: translateZ(0);
+}
+
+.reticle-crosshair{
+  position:absolute;
+  width: 140px;
+  height: 140px;
+  display:grid;
+  place-items:center;
+  opacity: 0.9;
+}
+.reticle-crosshair span{
+  position:absolute;
+  width: 34px;
+  height: 2px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+}
+.reticle-crosshair span:nth-child(2){
+  transform: rotate(90deg);
+}
+
+.reticle-dot{
+  position:absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 0 0 8px rgba(34,197,94,0.18);
+}
+
+/* Found animation */
+#arWrap.is-found .reticle-ring{
+  animation: ringPulse 520ms ease-out 1;
+  box-shadow:
+    0 0 0 10px rgba(34,197,94,0.18),
+    0 18px 54px rgba(0,0,0,0.28);
+}
+#arWrap.is-found .reticle-dot{
+  animation: dotPop 520ms ease-out 1;
+  box-shadow: 0 0 0 10px rgba(236,72,153,0.18);
+}
+
+@keyframes ringPulse{
+  0%{ transform: scale(1); filter: saturate(1); }
+  55%{ transform: scale(1.06); filter: saturate(1.15); }
+  100%{ transform: scale(1); filter: saturate(1); }
+}
+@keyframes dotPop{
+  0%{ transform: scale(1); }
+  45%{ transform: scale(1.55); }
+  100%{ transform: scale(1); }
+}
+
+/* Hint */
+.camera-hint{
+  position:absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 25;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.46);
+  color: rgba(255,255,255,0.92);
+  font-size: 12.5px;
+  text-align:center;
+  border: 1px solid rgba(255,255,255,0.16);
+  backdrop-filter: blur(12px);
+}
+
+/* =========================
+   Status / Buttons / Results
+   ========================= */
+
+.status-grid{
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  display:grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 620px){
+  .status-grid{ grid-template-columns: 1fr 1fr; }
+}
+
+.status-card{
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.60);
+}
+:root[data-theme="dark"] .status-card{
+  background: rgba(255,255,255,0.06);
+}
+.status-label{
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.status-value{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+/* Chips */
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.72);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -0.15px;
+}
+:root[data-theme="dark"] .chip{
+  background: rgba(255,255,255,0.08);
+}
+.chip-blue{
+  border-color: rgba(37,99,235,0.22);
+  color: color-mix(in srgb, var(--blue) 88%, var(--text) 12%);
+  background: rgba(37,99,235,0.10);
+}
+.chip-green{
+  border-color: rgba(34,197,94,0.22);
+  color: color-mix(in srgb, var(--green) 88%, var(--text) 12%);
+  background: rgba(34,197,94,0.10);
+}
+
+/* Buttons */
+.buttons{
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn{
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-weight: 850;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  user-select: none;
+}
+.btn:focus-visible{
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.btn-primary{
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  color: white;
+  border: none;
+  box-shadow: var(--shadow2);
+}
+.btn-primary:hover{ transform: translateY(-1px); }
+.btn-primary:active{ transform: translateY(0) scale(0.99); }
+
+.btn-secondary{
+  background: rgba(255,255,255,0.75);
+  color: var(--text);
+}
+:root[data-theme="dark"] .btn-secondary{
+  background: rgba(255,255,255,0.08);
+}
+.btn-secondary:hover{
+  background: rgba(15, 23, 42, 0.06);
+}
+:root[data-theme="dark"] .btn-secondary:hover{
+  background: rgba(255,255,255,0.10);
+}
+
+.btn-ghost{
+  background: transparent;
+  color: var(--text);
+}
+.btn-ghost:hover{
+  background: rgba(15, 23, 42, 0.06);
+}
+:root[data-theme="dark"] .btn-ghost:hover{
+  background: rgba(255,255,255,0.10);
+}
+
+.btn-sm{
+  padding: 8px 10px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+.btn:disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Results */
+.result-block{ margin-top: 14px; position: relative; z-index: 2; }
+
+.label{
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.label-row{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.rendered{
+  font-size: 22px;
+  padding: 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,250,250,0.86));
+  box-shadow: 0 10px 24px rgba(15,23,42,0.06);
+}
+:root[data-theme="dark"] .rendered{
+  background: rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+
+.code{
+  margin:0;
+  padding: 12px;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: #0b1020;
+  color: #e7e7e7;
+  overflow:auto;
+  font-family: var(--font-mono);
+  line-height: 1.5;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+.tip{
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  background: rgba(34,197,94,0.10);
+  border: 1px solid rgba(34,197,94,0.18);
+  color: color-mix(in srgb, var(--green) 82%, var(--text) 18%);
+  font-size: 13px;
+}
+
+/* Mini note */
+.mini-note{
+  position: relative;
+  z-index: 2;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* =========================
+   Toast
+   ========================= */
+
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(14px);
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.80);
+  color: var(--text);
+  box-shadow: var(--shadow2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  max-width: min(560px, calc(100vw - 24px));
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: -0.15px;
+  z-index: 99999;
+}
+:root[data-theme="dark"] .toast{
+  background: rgba(10, 14, 28, 0.78);
+}
+.toast.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================
+   Mobile-only: no page scroll + remove status box
+   ========================= */
+
+@media (max-width: 520px){
+  :root{ --topbarH: 60px; }
+
+  .topbar{ padding: 10px 12px; }
+  .brand{ gap: 10px; }
+
+  .logo{
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .brand-text h1{ font-size: 16px; }
+  .brand-text p{ font-size: 12px; }
+
+  .header-actions{ gap: 6px; }
+  .btn-sm{
+    padding: 7px 9px;
+    font-size: 12px;
+    border-radius: 13px;
+  }
+
+  /* Κλειδώνουμε το main στο viewport, χωρίς scroll της σελίδας */
+  body{ overflow: hidden; }
+
+  .layout{
+    height: calc(100dvh - var(--topbarH));
+    padding: 12px;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  /* Panels ως flex columns */
+  .panel{
+    padding: 12px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Split: camera πάνω, αποτέλεσμα κάτω */
+  .panel-scan{ flex: 1.22; }
+  .panel-result{ flex: 0.78; }
+
+  .panel-title{ margin-bottom: 8px; }
+  .panel-title h2{ font-size: 15px; }
+  .pill{ padding: 5px 9px; font-size: 11.5px; }
+
+  .helper{
+    padding: 9px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+  }
+
+  /* Κάμερα να πιάνει το διαθέσιμο, αλλά να αφήνει χώρο για τα κουμπιά */
+  .ar-container{
+    height: auto;
+    flex: 1;
+    min-height: 190px;
+    border-radius: 20px;
+  }
+
+  .camera-hint{
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+
+  .reticle-ring{ width: 124px; height: 124px; }
+  .reticle-crosshair{ width: 128px; height: 128px; }
+
+  /* Η βασική αλλαγή: κρύβουμε το status box στο mobile */
+  .status-grid{
+    display: none;
+  }
+
+  /* Τα κουμπιά πλέον είναι αμέσως κάτω από την κάμερα (στη θέση του status box) */
+  .buttons{
+    margin-top: 10px;
+    flex-direction: row;
+  }
+  .buttons .btn{
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Κρύβουμε το note στο mobile για να κερδίσουμε χώρο */
+  .mini-note{ display:none; }
+
+  /* RESULT panel: κρατάμε πάντα ορατό το rendered, το code γίνεται “εσωτερικό scroll” */
+  .result-block{ margin-top: 10px; }
+
+  .result-main{
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rendered{
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 16px;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .result-code{ margin-top: 8px; }
+
+  .code{
+    font-size: 12.5px;
+    padding: 10px;
+    max-height: 96px;
+    overflow: auto;
+  }
+
+  .tip{ display:none; }
+
+  .toast{
+    max-width: calc(100vw - 18px);
+  }
+}
+
+/* Motion accessibility */
+@media (prefers-reduced-motion: reduce){
+  .btn, .toast{ transition: none; }
+  #arWrap.is-found .reticle-ring,
+  #arWrap.is-found .reticle-dot{ animation: none; }
+}
