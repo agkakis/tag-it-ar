@@ -3,6 +3,8 @@
    ========================= */
 
 :root{
+  --topbarH: 72px;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
@@ -55,6 +57,7 @@
 
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
+
 body{
   margin: 0;
   font-family: var(--font-sans);
@@ -425,33 +428,6 @@ body{
   backdrop-filter: blur(12px);
 }
 
-/* Debug preview */
-.video-debug{
-  position:absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 180px;
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 16px;
-  overflow:hidden;
-  display:none;
-  background:#000;
-  z-index: 9999;
-  box-shadow: 0 16px 34px rgba(0,0,0,0.35);
-}
-.video-debug-title{
-  font-size: 11px;
-  color:#fff;
-  padding: 6px 8px;
-  background: rgba(0,0,0,.55);
-}
-.video-debug video{
-  width:100%;
-  display:block;
-  position: static !important;
-  height:auto !important;
-}
-
 /* =========================
    Status / Buttons / Results
    ========================= */
@@ -465,7 +441,7 @@ body{
   grid-template-columns: 1fr;
 }
 @media (min-width: 620px){
-  .status-grid{ grid-template-columns: 1fr 1fr 1fr; }
+  .status-grid{ grid-template-columns: 1fr 1fr; }
 }
 
 .status-card{
@@ -513,10 +489,6 @@ body{
   border-color: rgba(34,197,94,0.22);
   color: color-mix(in srgb, var(--green) 88%, var(--text) 12%);
   background: rgba(34,197,94,0.10);
-}
-.chip-neutral{
-  border-color: var(--border);
-  color: var(--muted);
 }
 
 /* Buttons */
@@ -687,19 +659,16 @@ body{
 }
 
 /* =========================
-   Mobile-only adjustments
-   (Δεν επηρεάζουν desktop)
+   Mobile-only: no page scroll
+   (Desktop layout unaffected)
    ========================= */
 
 @media (max-width: 520px){
-  /* πιο “σφιχτό” header */
-  .topbar{
-    padding: 10px 12px;
-  }
+  :root{ --topbarH: 60px; }
 
-  .brand{
-    gap: 10px;
-  }
+  /* πιο “σφιχτό” header */
+  .topbar{ padding: 10px 12px; }
+  .brand{ gap: 10px; }
 
   .logo{
     width: 40px;
@@ -707,46 +676,55 @@ body{
     border-radius: 14px;
   }
 
-  .brand-text h1{
-    font-size: 16px;
-  }
-  .brand-text p{
-    font-size: 12px;
-  }
+  .brand-text h1{ font-size: 16px; }
+  .brand-text p{ font-size: 12px; }
 
-  .header-actions{
-    gap: 6px;
-  }
+  .header-actions{ gap: 6px; }
   .btn-sm{
     padding: 7px 9px;
     font-size: 12px;
     border-radius: 13px;
   }
 
-  /* layout/panels πιο compact */
+  /* Κλειδώνουμε το main στο viewport, χωρίς scroll της σελίδας */
+  body{ overflow: hidden; }
+
   .layout{
+    height: calc(100dvh - var(--topbarH));
     padding: 12px;
     gap: 12px;
+    overflow: hidden;
   }
+
+  /* Τα panels γίνονται “στήλες” (flex), ώστε να χωρέσουν */
   .panel{
     padding: 12px;
     border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
-  .panel-title{
+  /* Split: camera πάνω, αποτέλεσμα κάτω */
+  .panel-scan{ flex: 1.15; }
+  .panel-result{ flex: 0.85; }
+
+  .panel-title{ margin-bottom: 8px; }
+  .panel-title h2{ font-size: 15px; }
+  .pill{ padding: 5px 9px; font-size: 11.5px; }
+
+  /* helper πιο compact */
+  .helper{
+    padding: 9px 10px;
     margin-bottom: 8px;
-  }
-  .panel-title h2{
-    font-size: 15px;
-  }
-  .pill{
-    padding: 5px 9px;
-    font-size: 11.5px;
+    font-size: 12.5px;
   }
 
-  /* camera: πιο ψηλό/ευανάγνωστο */
+  /* Η κάμερα να “γεμίζει” το διαθέσιμο ύψος του πάνω panel */
   .ar-container{
-    height: 340px; /* πιο “AR-first” στο κινητό */
+    height: auto;
+    flex: 1;
+    min-height: 200px;
     border-radius: 20px;
   }
 
@@ -759,57 +737,73 @@ body{
   }
 
   /* reticle ελαφρώς μικρότερο */
-  .reticle-ring{
-    width: 126px;
-    height: 126px;
-  }
-  .reticle-crosshair{
-    width: 130px;
-    height: 130px;
-  }
+  .reticle-ring{ width: 124px; height: 124px; }
+  .reticle-crosshair{ width: 128px; height: 128px; }
 
-  /* status: 2 στήλες για καλύτερη χρήση χώρου */
+  /* status και buttons να μη “τρώνε” πολύ χώρο */
   .status-grid{
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
   }
-  .status-card:nth-child(3){
-    grid-column: 1 / -1; /* το Debug πιάνει όλο το πλάτος */
+  .status-card{
+    padding: 9px 10px;
+    border-radius: 16px;
   }
-
   .chip{
     font-size: 12.5px;
     padding: 7px 9px;
   }
 
-  /* buttons full width stacked */
   .buttons{
-    flex-direction: column;
+    margin-top: 10px;
+    flex-direction: row;
   }
   .buttons .btn{
-    width: 100%;
-    justify-content: center;
+    flex: 1;
+    text-align: center;
   }
 
-  /* αποτέλεσμα: λίγο πιο “fit” */
+  /* Προαιρετικά: κρύβουμε το note στο mobile για να μη σπρώχνει */
+  .mini-note{ display:none; }
+
+  /* RESULT panel: κρατάμε πάντα ορατό το rendered, το code γίνεται “εσωτερικό scroll” */
+  .panel-result .panel-title{ margin-bottom: 8px; }
+
+  .result-block{ margin-top: 10px; }
+  .result-main{
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .rendered{
     font-size: 20px;
     padding: 12px;
+    border-radius: 16px;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
   }
+
+  .result-code{
+    margin-top: 8px;
+  }
+
   .code{
     font-size: 12.5px;
-    padding: 11px;
+    padding: 10px;
+    max-height: 96px;      /* εσωτερικό scroll μόνο εδώ */
+    overflow: auto;
   }
 
-  /* toast να μην είναι υπερβολικά πλατύ */
+  /* Η tip κρύβεται για να μη δημιουργεί ανάγκη scroll */
+  .tip{ display:none; }
+
   .toast{
     max-width: calc(100vw - 18px);
-  }
-
-  /* debug preview λίγο μικρότερο */
-  .video-debug{
-    width: 160px;
-    right: 8px;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 }
 
