@@ -715,8 +715,8 @@ body{
 
   /* helper πιο compact */
   .helper{
-    padding: 9px 10px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
     font-size: 12.5px;
   }
 
@@ -743,8 +743,8 @@ body{
   /* status και buttons να μη “τρώνε” πολύ χώρο */
   .status-grid{
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 6px;
+    margin-top: 8px;
   }
   .status-card{
     padding: 9px 10px;
