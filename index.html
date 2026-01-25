@@ -52,9 +52,6 @@
       </div>
 
       <div class="ar-container" id="arWrap">
-        <!--
-          ΣΗΜΑΝΤΙΚΟ: κρατάμε το mindar-image “απλό” (χωρίς videoSettings object) για σταθερότητα.
-        -->
         <a-scene
           id="scene"
           embedded
@@ -78,10 +75,8 @@
           <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
         </a-scene>
 
-        <!-- Decorative overlays -->
         <div class="camera-overlay" aria-hidden="true"></div>
 
-        <!-- Reticle -->
         <div class="reticle" aria-hidden="true">
           <div class="reticle-ring"></div>
           <div class="reticle-crosshair">
@@ -94,7 +89,6 @@
           Κράτησε την κάρτα στο κέντρο
         </div>
 
-        <!-- Debug preview -->
         <div id="videoDebugBox" class="video-debug" aria-live="polite">
           <div class="video-debug-title">Debug camera preview</div>
           <video id="videoDebug" autoplay playsinline muted></video>
@@ -129,7 +123,9 @@
         <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
       </div>
 
-    
+      <div class="mini-note">
+        Συμβουλή: Χρησιμοποίησε <strong>http://localhost</strong> ή <strong>https</strong> για άδεια κάμερας.
+      </div>
     </section>
 
     <section class="panel panel-result">
@@ -160,7 +156,6 @@
     </section>
   </main>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script src="app.js"></script>
