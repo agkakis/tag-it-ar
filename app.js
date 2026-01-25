@@ -129,14 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   copyBtn?.addEventListener("click", async () => {
-    // Θέλουμε το εμφανιζόμενο HTML (π.χ. <p><mark>..</mark></p>)
     const txt = codeBox.innerText;
     try {
       await navigator.clipboard.writeText(txt);
       toast("Αντιγράφηκε!");
       setDebug("Αντιγράφηκε στο clipboard");
     } catch (e) {
-      // Fallback
       try {
         const range = document.createRange();
         range.selectNodeContents(codeBox);
@@ -219,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
       videoDebugBox.style.display = "block";
       setDebug("Camera stream OK (debug preview ενεργό)");
     } else {
-      // Αν δεν έχει έρθει ακόμα stream, απλά μην το ανοίξουμε.
       videoDebugBox.style.display = "none";
     }
   }
@@ -264,13 +261,11 @@ document.addEventListener("DOMContentLoaded", () => {
       startBtn.disabled = true;
       stopBtn.disabled = false;
 
-      // Δώσε λίγο χρόνο και μετά “δέσε” video + layering
       setTimeout(() => {
         forceMindarVideoVisible();
         attachDebugPreviewIfPossible();
       }, 600);
 
-      // Fallback: αν δεν βρούμε stream video μετά από 1200ms, κάνουμε ένα retry
       setTimeout(async () => {
         if (!isRunning) return;
         const v = findMindarStreamVideo();
