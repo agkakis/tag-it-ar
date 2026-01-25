@@ -724,7 +724,7 @@ body{
   .ar-container{
     height: auto;
     flex: 1;
-    min-height: 180px;
+    min-height: 160px;
     border-radius: 20px;
   }
 
