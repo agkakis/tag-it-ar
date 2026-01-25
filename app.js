@@ -31,10 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
     9: "u",
   };
 
-  /* =========================
-     Utilities
-     ========================= */
-
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   }
@@ -77,10 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => arWrap.classList.remove("is-found"), 520);
   }
 
-  /* =========================
-     Theme / Copy
-     ========================= */
-
   function applyTheme(theme) {
     if (!theme) {
       document.documentElement.removeAttribute("data-theme");
@@ -107,7 +99,6 @@ document.addEventListener("DOMContentLoaded", () => {
       await navigator.clipboard.writeText(txt);
       toast("Αντιγράφηκε!");
     } catch (e) {
-      // Fallback
       try {
         const range = document.createRange();
         range.selectNodeContents(codeBox);
@@ -123,10 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* =========================
-     Global error hooks
-     ========================= */
-
   window.addEventListener("error", (e) => {
     setStatus("Σφάλμα JS");
     console.error(e);
@@ -138,10 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error(e.reason);
     toast("Κάτι πήγε στραβά (Promise)");
   });
-
-  /* =========================
-     MindAR start/stop logic
-     ========================= */
 
   let arSystem = null;
   let isRunning = false;
@@ -220,7 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
         forceMindarVideoVisible();
       }, 600);
 
-      // Fallback retry αν δεν δέσει video stream
       setTimeout(async () => {
         if (!isRunning) return;
         const v = findMindarStreamVideo();
