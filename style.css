@@ -756,7 +756,7 @@ body{
   }
 
   .buttons{
-    margin-top: 10px;
+    margin-top: 5px;
     flex-direction: row;
   }
   .buttons .btn{
