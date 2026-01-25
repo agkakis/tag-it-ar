@@ -706,8 +706,8 @@ body{
   }
 
   /* Split: camera πάνω, αποτέλεσμα κάτω */
-  .panel-scan{ flex: 1.80; }
-  .panel-result{ flex: 0.20; }
+  .panel-scan{ flex: 1.50; }
+  .panel-result{ flex: 0.50; }
 
   .panel-title{ margin-bottom: 8px; }
   .panel-title h2{ font-size: 15px; }
