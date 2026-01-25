@@ -698,7 +698,7 @@ body{
 
   /* Τα panels γίνονται “στήλες” (flex), ώστε να χωρέσουν */
   .panel{
-    padding: 0px;
+    padding: 12px;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
