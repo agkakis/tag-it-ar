@@ -96,9 +96,7 @@ body{
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   background: rgba(255,255,255,0.70);
-<!--  
-   backdrop-filter: blur(12px);
--->
+  backdrop-filter: blur(12px);
 }
 :root[data-theme="dark"] .topbar{
   background: rgba(10, 14, 28, 0.65);
