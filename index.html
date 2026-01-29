@@ -57,39 +57,6 @@
         <!--
           ΣΗΜΑΝΤΙΚΟ: κρατάμε το mindar-image “απλό” (χωρίς videoSettings object) για σταθερότητα.
         -->
---------
-
-<div class="status-grid">
-        <div class="status-card">
-          <div class="status-label">Κατάσταση</div>
-          <div class="status-value">
-            <span class="chip chip-blue" id="statusText">Φόρτωση…</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Εντοπίστηκε</div>
-          <div class="status-value">
-            <span class="chip chip-green" id="detectedTag">—</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Debug</div>
-          <div class="status-value">
-            <span class="chip chip-neutral" id="debugText">—</span>
-          </div>
-        </div>
-        
-      </div>
-
-
-
-
-
-
-
- -------       
         <a-scene
           id="scene"
           embedded
@@ -98,7 +65,15 @@
           device-orientation-permission-ui="enabled: false"
           renderer="colorManagement: true, physicallyCorrectLights"
         >
-         
+
+
+
+
+
+
+
+
+          
           <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
           <!-- Targets 0..9 -->
@@ -137,7 +112,30 @@
         </div>
       </div>
 
-      -------
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-label">Κατάσταση</div>
+          <div class="status-value">
+            <span class="chip chip-blue" id="statusText">Φόρτωση…</span>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-label">Εντοπίστηκε</div>
+          <div class="status-value">
+            <span class="chip chip-green" id="detectedTag">—</span>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-label">Debug</div>
+          <div class="status-value">
+            <span class="chip chip-neutral" id="debugText">—</span>
+          </div>
+        </div>
+        
+      </div>
+
       <div class="buttons">
         <button id="startBtn" class="btn btn-primary" disabled>Έναρξη Σάρωσης</button>
         <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
