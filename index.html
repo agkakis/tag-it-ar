@@ -29,9 +29,7 @@
         <button id="themeBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή θέματος">
           Θέμα
         </button>
-        <button id="debugBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή debug preview">
-          Debug
-        </button>
+        <!-- Debug αφαιρέθηκε -->
       </div>
     </div>
   </header>
@@ -43,6 +41,7 @@
           <h2>Κάμερα / Σάρωση</h2>
           <span class="pill pill-blue">Level 1</span>
         </div>
+        <!-- Αντί για "Κατάσταση" card, κρατάμε μόνο αυτό το pill -->
         <span class="pill pill-neutral" id="scanPill">Ready</span>
       </div>
 
@@ -94,32 +93,15 @@
           Κράτησε την κάρτα στο κέντρο
         </div>
 
-        <!-- Debug preview -->
-        <div id="videoDebugBox" class="video-debug" aria-live="polite">
-          <div class="video-debug-title">Debug camera preview</div>
-          <video id="videoDebug" autoplay playsinline muted></video>
-        </div>
+        <!-- Debug preview αφαιρέθηκε -->
       </div>
 
-      <div class="status-grid">
-        <div class="status-card">
-          <div class="status-label">Κατάσταση</div>
-          <div class="status-value">
-            <span class="chip chip-blue" id="statusText">Φόρτωση…</span>
-          </div>
-        </div>
-
+      <!-- Status Grid: Κρατάμε ΜΟΝΟ το "Εντοπίστηκε" -->
+      <div class="status-grid status-grid-single">
         <div class="status-card">
           <div class="status-label">Εντοπίστηκε</div>
           <div class="status-value">
             <span class="chip chip-green" id="detectedTag">—</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Debug</div>
-          <div class="status-value">
-            <span class="chip chip-neutral" id="debugText">—</span>
           </div>
         </div>
       </div>
@@ -151,7 +133,7 @@
       <div class="result-block">
         <div class="label-row">
           <p class="label">Κώδικας HTML:</p>
-          <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">Αντιγραφή</button>
+          <!-- Αντιγραφή αφαιρέθηκε -->
         </div>
         <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
       </div>
