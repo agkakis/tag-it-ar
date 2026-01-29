@@ -1,3 +1,7 @@
+/* =========================
+   Tag-it-AR — Playful UI
+   ========================= */
+
 :root{
   --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -421,33 +425,6 @@ body{
   backdrop-filter: blur(12px);
 }
 
-/* Debug preview */
-.video-debug{
-  position:absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 180px;
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 16px;
-  overflow:hidden;
-  display:none;
-  background:#000;
-  z-index: 9999;
-  box-shadow: 0 16px 34px rgba(0,0,0,0.35);
-}
-.video-debug-title{
-  font-size: 11px;
-  color:#fff;
-  padding: 6px 8px;
-  background: rgba(0,0,0,.55);
-}
-.video-debug video{
-  width:100%;
-  display:block;
-  position: static !important;
-  height:auto !important;
-}
-
 /* =========================
    Status / Buttons / Results
    ========================= */
@@ -462,6 +439,11 @@ body{
 }
 @media (min-width: 620px){
   .status-grid{ grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* Για την περίπτωση που έχουμε μόνο 1 card */
+.status-grid-single{
+  grid-template-columns: 1fr !important;
 }
 
 .status-card{
@@ -688,4 +670,3 @@ body{
   #arWrap.is-found .reticle-ring,
   #arWrap.is-found .reticle-dot{ animation: none; }
 }
-
