@@ -1,5 +1,3 @@
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const statusText = document.getElementById("statusText");
   const debugText = document.getElementById("debugText");
@@ -408,4 +406,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
