@@ -1,4 +1,8 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
+  const statusText = document.getElementById("statusText");
+  const debugText = document.getElementById("debugText");
   const detectedTag = document.getElementById("detectedTag");
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
@@ -9,10 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const sceneEl = document.getElementById("scene");
   const arWrap = document.getElementById("arWrap");
 
-  const themeBtn = document.getElementById("themeBtn");
-  const toastEl = document.getElementById("toast");
+  const videoDebugBox = document.getElementById("videoDebugBox");
+  const videoDebug = document.getElementById("videoDebug");
 
-  const scanPill = document.getElementById("scanPill");
+  const themeBtn = document.getElementById("themeBtn");
+  const debugBtn = document.getElementById("debugBtn");
+  const copyBtn = document.getElementById("copyBtn");
+  const toastEl = document.getElementById("toast");
 
   const RESET_DELAY_MS = 2000;
   const DEFAULT_RENDERED_TEXT = "Hello World!";
@@ -35,11 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
      Utilities
      ========================= */
 
-  function setScanPill(text) {
-    if (!scanPill) return;
-    scanPill.textContent = text;
-  }
-
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   }
@@ -51,6 +53,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<p><${tagName}>${text}</${tagName}></p>`;
   }
 
+  function setStatus(msg) {
+    statusText.textContent = msg;
+  }
+
+  function setDebug(msg) {
+    debugText.textContent = msg;
+  }
+
   function errToText(e) {
     const name = e?.name ? `${e.name}` : "Error";
     const msg = e?.message ? `${e.message}` : String(e);
@@ -58,9 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetToDefault() {
-    if (detectedTag) detectedTag.textContent = "—";
-    if (rendered) rendered.textContent = DEFAULT_RENDERED_TEXT;
-    if (codeBox) codeBox.innerHTML = DEFAULT_CODE;
+    detectedTag.textContent = "—";
+    rendered.textContent = DEFAULT_RENDERED_TEXT;
+    codeBox.innerHTML = DEFAULT_CODE;
   }
 
   let toastTimer = null;
@@ -69,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toastEl.textContent = msg;
     toastEl.classList.add("show");
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1600);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1400);
   }
 
   function playFoundEffect() {
@@ -78,12 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => arWrap.classList.remove("is-found"), 520);
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
   /* =========================
-     Theme toggle
+     Theme / Debug toggles
      ========================= */
 
   function applyTheme(theme) {
@@ -106,20 +112,64 @@ document.addEventListener("DOMContentLoaded", () => {
     toast(next === "dark" ? "Dark mode" : "Light mode");
   });
 
+  let debugEnabled = false;
+
+  debugBtn?.addEventListener("click", () => {
+    debugEnabled = !debugEnabled;
+
+    if (!debugEnabled) {
+      videoDebugBox.style.display = "none";
+      videoDebug.srcObject = null;
+      setDebug("Debug preview: OFF");
+      toast("Debug: OFF");
+      return;
+    }
+
+    attachDebugPreviewIfPossible();
+    setDebug("Debug preview: ON");
+    toast("Debug: ON");
+  });
+
+  copyBtn?.addEventListener("click", async () => {
+    // Θέλουμε το εμφανιζόμενο HTML (π.χ. <p><mark>..</mark></p>)
+    const txt = codeBox.innerText;
+    try {
+      await navigator.clipboard.writeText(txt);
+      toast("Αντιγράφηκε!");
+      setDebug("Αντιγράφηκε στο clipboard");
+    } catch (e) {
+      // Fallback
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(codeBox);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand("copy");
+        sel.removeAllRanges();
+        toast("Αντιγράφηκε!");
+        setDebug("Αντιγράφηκε (fallback)");
+      } catch (err) {
+        toast("Αποτυχία αντιγραφής");
+        setDebug("Αποτυχία αντιγραφής (permissions)");
+      }
+    }
+  });
+
   /* =========================
      Global error hooks
      ========================= */
 
   window.addEventListener("error", (e) => {
-    console.error(e);
-    setScanPill("Error");
-    toast("Σφάλμα JavaScript");
+    setStatus("Σφάλμα JS");
+    setDebug(e.message || "Άγνωστο σφάλμα");
+    toast("Κάτι πήγε στραβά (JS)");
   });
 
   window.addEventListener("unhandledrejection", (e) => {
-    console.error(e);
-    setScanPill("Error");
-    toast("Σφάλμα Promise");
+    setStatus("Σφάλμα Promise");
+    setDebug(errToText(e.reason));
+    toast("Κάτι πήγε στραβά (Promise)");
   });
 
   /* =========================
@@ -130,14 +180,16 @@ document.addEventListener("DOMContentLoaded", () => {
   let isRunning = false;
 
   let resetTimer = null;
+
   function scheduleResetAfterLost() {
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = setTimeout(() => {
       resetToDefault();
-      if (isRunning) setScanPill("Scanning");
-      else setScanPill("Ready");
+      setStatus("Αναμονή…");
+      setDebug(`reset μετά από ${RESET_DELAY_MS}ms`);
     }, RESET_DELAY_MS);
   }
+
   function cancelScheduledReset() {
     if (resetTimer) {
       clearTimeout(resetTimer);
@@ -151,15 +203,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function warmupCameraOnce() {
-    // Σε αρκετές συσκευές βοηθάει το permission flow.
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    stream.getTracks().forEach((t) => t.stop());
+    stream.getTracks().forEach(t => t.stop());
   }
 
   function findMindarStreamVideo() {
     if (!arWrap) return null;
     const vids = Array.from(arWrap.querySelectorAll("video"));
-    return vids.find((v) => v.srcObject instanceof MediaStream) || null;
+    return vids.find(v => v.srcObject instanceof MediaStream) || null;
+  }
+
+  function attachDebugPreviewIfPossible() {
+    if (!debugEnabled) return;
+    const v = findMindarStreamVideo();
+    if (v && v.srcObject) {
+      videoDebug.srcObject = v.srcObject;
+      videoDebugBox.style.display = "block";
+      setDebug("Camera stream OK (debug preview ενεργό)");
+    } else {
+      // Αν δεν έχει έρθει ακόμα stream, απλά μην το ανοίξουμε.
+      videoDebugBox.style.display = "none";
+    }
   }
 
   function forceMindarVideoVisible() {
@@ -171,98 +235,74 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function ensureArSystemReady(timeoutMs = 2500) {
-    const startedAt = Date.now();
-    while (Date.now() - startedAt < timeoutMs) {
-      const sys = sceneEl?.systems?.["mindar-image-system"];
-      if (sys) return sys;
-      await sleep(80);
-    }
-    return null;
-  }
-
-  async function ensureVideoStreamVisible(timeoutMs = 2200) {
-    const startedAt = Date.now();
-    while (Date.now() - startedAt < timeoutMs) {
-      const v = findMindarStreamVideo();
-      if (v && v.srcObject instanceof MediaStream) {
-        forceMindarVideoVisible();
-        return true;
-      }
-      await sleep(120);
-    }
-    return false;
-  }
-
   async function startAR() {
     if (isRunning) return;
 
     try {
-      setScanPill("Checking…");
+      setStatus("Έλεγχος…");
+      setDebug(`${location.protocol}//${location.host} | secureContext=${window.isSecureContext}`);
 
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("getUserMedia δεν υποστηρίζεται. Δοκίμασε Chrome/Edge.");
       }
 
-      // Αν δεν είσαι σε secure context, η κάμερα συνήθως μπλοκάρει.
-      if (!window.isSecureContext) {
-        toast("Χρειάζεται https ή http://localhost για κάμερα");
-      }
-
       await checkTargetsMind();
 
-      // Πιάσε/περίμενε το AR system (πολλές φορές αργεί λίγο)
       if (!arSystem) {
-        arSystem = await ensureArSystemReady(3000);
-      }
-      if (!arSystem) {
-        throw new Error("Δεν είναι έτοιμο το mindar-image-system (φόρτωση βιβλιοθηκών).");
+        throw new Error("Το AR σύστημα δεν είναι έτοιμο. Περίμενε 1–2 δευτερόλεπτα και ξαναπάτα.");
       }
 
-      setScanPill("Permission…");
+      setStatus("Permission κάμερας…");
       await warmupCameraOnce();
 
-      setScanPill("Starting…");
+      setStatus("Ξεκινάω σάρωση…");
       await arSystem.start();
 
       isRunning = true;
+      setStatus("Σάρωση ενεργή");
+      setDebug("arSystem.start OK");
+      toast("Σάρωση: ON");
+
       startBtn.disabled = true;
       stopBtn.disabled = false;
 
-      // προσπάθησε να “δέσεις” το video stream (μερικές συσκευές καθυστερούν)
-      const ok = await ensureVideoStreamVisible(2500);
-      if (!ok) {
-        console.warn("Δεν εμφανίστηκε video stream έγκαιρα — retry start()");
-        // fallback retry
-        try {
-          await arSystem.stop();
-          await sleep(250);
-          await arSystem.start();
-          await ensureVideoStreamVisible(2500);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      // Δώσε λίγο χρόνο και μετά “δέσε” video + layering
+      setTimeout(() => {
+        forceMindarVideoVisible();
+        attachDebugPreviewIfPossible();
+      }, 600);
 
-      setScanPill("Scanning");
-      toast("Σάρωση: ON");
+      // Fallback: αν δεν βρούμε stream video μετά από 1200ms, κάνουμε ένα retry
+      setTimeout(async () => {
+        if (!isRunning) return;
+        const v = findMindarStreamVideo();
+        if (!v || !(v.srcObject instanceof MediaStream)) {
+          setDebug("Δεν βρέθηκε stream video — retry start()");
+          try {
+            await arSystem.stop();
+            await arSystem.start();
+            setTimeout(() => {
+              forceMindarVideoVisible();
+              attachDebugPreviewIfPossible();
+              setDebug("Retry OK");
+            }, 600);
+          } catch (e) {
+            setStatus("Αποτυχία εκκίνησης");
+            setDebug(errToText(e));
+            toast("Αποτυχία εκκίνησης");
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            isRunning = false;
+          }
+        }
+      }, 1200);
 
     } catch (e) {
       console.error(e);
       isRunning = false;
-
-      setScanPill("Failed");
-
-      // Δείξε πιο χρήσιμο μήνυμα
-      const msg = errToText(e);
-      if (msg.includes("NotAllowedError")) {
-        toast("Άρνηση άδειας κάμερας");
-      } else if (msg.includes("NotFoundError")) {
-        toast("Δεν βρέθηκε κάμερα στη συσκευή");
-      } else {
-        toast(msg);
-      }
-
+      setStatus("Αποτυχία εκκίνησης");
+      setDebug(errToText(e));
+      toast("Αποτυχία εκκίνησης");
       startBtn.disabled = false;
       stopBtn.disabled = true;
     }
@@ -276,75 +316,70 @@ document.addEventListener("DOMContentLoaded", () => {
       await arSystem.stop();
       isRunning = false;
 
-      setScanPill("Ready");
+      setStatus("Σταμάτησε");
+      setDebug("—");
       resetToDefault();
+
+      videoDebugBox.style.display = "none";
+      videoDebug.srcObject = null;
 
       startBtn.disabled = false;
       stopBtn.disabled = true;
 
       toast("Σάρωση: OFF");
+
     } catch (e) {
       console.error(e);
-      setScanPill("Error");
-      toast(errToText(e));
+      setStatus("Σφάλμα στο stop");
+      setDebug(errToText(e));
+      toast("Σφάλμα στο stop");
     }
   }
 
-  /* =========================
-     Init / Scene hooks
-     ========================= */
-
-  async function init() {
-    setScanPill("Loading…");
-    startBtn.disabled = true;
-    stopBtn.disabled = true;
-    resetToDefault();
-
+  sceneEl.addEventListener("loaded", async () => {
     try {
-      await checkTargetsMind();
+      setStatus("Φόρτωση…");
+      setDebug("—");
 
-      // Περίμενε να είναι διαθέσιμο το system (με retry)
-      arSystem = await ensureArSystemReady(3500);
+      arSystem = sceneEl.systems["mindar-image-system"];
       if (!arSystem) {
         throw new Error("Δεν βρέθηκε mindar-image-system. Έλεγξε ότι φορτώνουν τα CDN scripts.");
       }
 
-      setScanPill("Ready");
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+      await checkTargetsMind();
 
+      setStatus("Έτοιμο – πάτα «Έναρξη Σάρωσης»");
+      setDebug("—");
+      startBtn.disabled = false;
+
+      resetToDefault();
       toast("Έτοιμο!");
+
     } catch (e) {
       console.error(e);
-      setScanPill("Error");
-      toast(errToText(e));
+      setStatus("Σφάλμα αρχικοποίησης");
+      setDebug(errToText(e));
+      toast("Σφάλμα αρχικοποίησης");
       startBtn.disabled = true;
       stopBtn.disabled = true;
     }
-  }
-
-  // Αν το scene ήδη “loaded”, τρέξε init. Αλλιώς περίμενε event.
-  if (sceneEl?.hasLoaded) {
-    init();
-  } else {
-    sceneEl?.addEventListener("loaded", init);
-  }
-
-  sceneEl?.addEventListener("arReady", () => {
-    if (isRunning) setScanPill("Scanning");
   });
 
-  sceneEl?.addEventListener("arError", () => {
-    setScanPill("Error");
+  sceneEl.addEventListener("arReady", () => {
+    if (isRunning) {
+      setStatus("Σάρωση ενεργή");
+      setDebug("arReady");
+    }
+  });
+
+  sceneEl.addEventListener("arError", () => {
+    setStatus("arError (MindAR)");
+    setDebug("Δες Console (F12) για λεπτομέρειες");
     toast("MindAR: arError");
   });
 
-  startBtn?.addEventListener("click", startAR);
-  stopBtn?.addEventListener("click", stopAR);
-
-  /* =========================
-     Targets
-     ========================= */
+  startBtn.addEventListener("click", startAR);
+  stopBtn.addEventListener("click", stopAR);
 
   for (let i = 0; i < 10; i++) {
     const entity = document.getElementById(`t${i}`);
@@ -354,19 +389,23 @@ document.addEventListener("DOMContentLoaded", () => {
       cancelScheduledReset();
 
       const tagName = targetIndexToTag[i];
-      if (detectedTag) detectedTag.textContent = `<${tagName}>`;
+      detectedTag.textContent = `<${tagName}>`;
 
       const html = buildHtmlForTag(tagName, "Hello World!");
-      if (codeBox) codeBox.innerHTML = escapeHtml(html);
-      if (rendered) rendered.innerHTML = html;
+      codeBox.innerHTML = escapeHtml(html);
+      rendered.innerHTML = html;
 
-      setScanPill("Found");
+      setStatus("Εντοπίστηκε κάρτα");
+      setDebug(`targetFound index=${i}`);
+
       playFoundEffect();
     });
 
     entity.addEventListener("targetLost", () => {
-      setScanPill("Lost…");
+      setStatus("Η κάρτα χάθηκε – επιστροφή σε 2s…");
+      setDebug(`targetLost index=${i}`);
       scheduleResetAfterLost();
     });
   }
 });
+
