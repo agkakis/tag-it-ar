@@ -3,6 +3,8 @@
    ========================= */
 
 :root{
+  --topbarH: 72px;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
@@ -55,6 +57,7 @@
 
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
+
 body{
   margin: 0;
   font-family: var(--font-sans);
@@ -93,7 +96,7 @@ body{
   position: sticky;
   top: 0;
   z-index: 60;
-  padding: 8px 10px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   background: rgba(255,255,255,0.70);
   backdrop-filter: blur(12px);
@@ -425,33 +428,6 @@ body{
   backdrop-filter: blur(12px);
 }
 
-/* Debug preview */
-.video-debug{
-  position:absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 180px;
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 16px;
-  overflow:hidden;
-  display:none;
-  background:#000;
-  z-index: 9999;
-  box-shadow: 0 16px 34px rgba(0,0,0,0.35);
-}
-.video-debug-title{
-  font-size: 11px;
-  color:#fff;
-  padding: 6px 8px;
-  background: rgba(0,0,0,.55);
-}
-.video-debug video{
-  width:100%;
-  display:block;
-  position: static !important;
-  height:auto !important;
-}
-
 /* =========================
    Status / Buttons / Results
    ========================= */
@@ -465,7 +441,7 @@ body{
   grid-template-columns: 1fr;
 }
 @media (min-width: 620px){
-  .status-grid{ grid-template-columns: 1fr 1fr 1fr; }
+  .status-grid{ grid-template-columns: 1fr 1fr; }
 }
 
 .status-card{
@@ -513,10 +489,6 @@ body{
   border-color: rgba(34,197,94,0.22);
   color: color-mix(in srgb, var(--green) 88%, var(--text) 12%);
   background: rgba(34,197,94,0.10);
-}
-.chip-neutral{
-  border-color: var(--border);
-  color: var(--muted);
 }
 
 /* Buttons */
@@ -661,7 +633,7 @@ body{
 .toast{
   position: fixed;
   left: 50%;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%) translateY(14px);
   padding: 10px 12px;
   border-radius: 999px;
@@ -686,10 +658,126 @@ body{
   transform: translateX(-50%) translateY(0);
 }
 
+/* =========================
+   Mobile-only: ONE SCREEN, NO SCROLL, remove non-essentials
+   ========================= */
+
+@media (max-width: 520px){
+  :root{ --topbarH: 58px; }
+
+  /* Compact header */
+  .topbar{ padding: 10px 12px; }
+  .brand{ gap: 10px; }
+
+  .logo{
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .brand-text h1{ font-size: 16px; }
+  .brand-text .subtitle{ display:none; } /* κρύβουμε 2η γραμμή */
+
+  .btn-sm{
+    padding: 7px 9px;
+    font-size: 12px;
+    border-radius: 13px;
+  }
+
+  /* No page scroll */
+  body{ overflow: hidden; }
+
+  .layout{
+    height: calc(100dvh - var(--topbarH));
+    padding: 12px;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  /* Panels behave as fixed columns inside viewport */
+  .panel{
+    padding: 12px;
+    border-radius: 20px;
+    display:flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Give a bit more space to scan so camera + buttons fit */
+  .panel-scan{ flex: 1.25; }
+  .panel-result{ flex: 0.75; }
+
+  /* Remove non-essentials on mobile */
+  .pill{ display:none; }
+  .helper{ display:none; }
+  .status-grid{ display:none; }
+  .mini-note{ display:none; }
+  .tip{ display:none; }
+
+  /* Camera takes remaining space in scan panel */
+  .panel-scan .ar-container{
+    height: auto;
+    flex: 1;
+    min-height: 200px;
+    border-radius: 20px;
+  }
+
+  .camera-hint{
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+
+  /* Buttons directly under camera */
+  .buttons{
+    margin-top: 10px;
+    flex-direction: row;
+    gap: 10px;
+  }
+  .buttons .btn{
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Result panel: keep rendered always visible; code small with internal scroll */
+  .result-block{ margin-top: 10px; }
+
+  .result-main{
+    flex: 1;
+    min-height: 0;
+    display:flex;
+    flex-direction: column;
+  }
+
+  .rendered{
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 16px;
+    flex: 1;
+    min-height: 0;
+    display:grid;
+    place-items: center;
+  }
+
+  .result-code{ margin-top: 8px; }
+
+  .code{
+    font-size: 12.2px;
+    padding: 10px;
+    max-height: 78px; /* πολύ μικρό για να μένει 1 οθόνη */
+    overflow: auto;
+  }
+
+  .toast{
+    max-width: calc(100vw - 18px);
+  }
+}
+
 /* Motion accessibility */
 @media (prefers-reduced-motion: reduce){
   .btn, .toast{ transition: none; }
   #arWrap.is-found .reticle-ring,
   #arWrap.is-found .reticle-dot{ animation: none; }
 }
-
