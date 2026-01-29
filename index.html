@@ -22,18 +22,13 @@
 
       <div class="brand-text">
         <h1>Tag-it-AR</h1>
-        <p>Σκανάρισε μία κάρτα και δες τι κάνει το HTML tag.</p>
+        <p class="subtitle">Σκανάρισε μία κάρτα και δες τι κάνει το HTML tag.</p>
       </div>
 
       <div class="header-actions">
         <button id="themeBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή θέματος">
-          Light/Dark
+          Θέμα
         </button>
-<!--        
-        <button id="debugBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή debug preview">
-          Debug
-        </button>
--->      
       </div>
     </div>
   </header>
@@ -42,23 +37,18 @@
     <section class="panel panel-scan">
       <div class="panel-title">
         <div class="panel-title-left">
-          <h2>Κάμερα / Σάρωση</h2>
+          <h2>Σάρωση</h2>
           <span class="pill pill-blue">Level 1</span>
         </div>
         <span class="pill pill-neutral" id="scanPill">Ready</span>
       </div>
 
- <!--   
       <div class="helper">
         <span class="helper-dot" aria-hidden="true"></span>
         <span>Στόχευσε την κάρτα μέσα στον κύκλο. Κράτα την σταθερή για 1–2s.</span>
-      </div>   
-  -->
+      </div>
 
       <div class="ar-container" id="arWrap">
-        <!--
-          ΣΗΜΑΝΤΙΚΟ: κρατάμε το mindar-image “απλό” (χωρίς videoSettings object) για σταθερότητα.
-        -->
         <a-scene
           id="scene"
           embedded
@@ -82,10 +72,8 @@
           <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
         </a-scene>
 
-        <!-- Decorative overlays -->
         <div class="camera-overlay" aria-hidden="true"></div>
 
-        <!-- Reticle -->
         <div class="reticle" aria-hidden="true">
           <div class="reticle-ring"></div>
           <div class="reticle-crosshair">
@@ -97,14 +85,9 @@
         <div class="camera-hint" aria-hidden="true">
           Κράτησε την κάρτα στο κέντρο
         </div>
-
-        <!-- Debug preview -->
-        <div id="videoDebugBox" class="video-debug" aria-live="polite">
-          <div class="video-debug-title">Debug camera preview</div>
-          <video id="videoDebug" autoplay playsinline muted></video>
-        </div>
       </div>
 
+      <!-- Desktop: φαίνεται. Mobile: κρύβεται με CSS -->
       <div class="status-grid">
         <div class="status-card">
           <div class="status-label">Κατάσταση</div>
@@ -119,24 +102,16 @@
             <span class="chip chip-green" id="detectedTag">—</span>
           </div>
         </div>
-<!--
-        <div class="status-card">
-          <div class="status-label">Debug</div>
-          <div class="status-value">
-            <span class="chip chip-neutral" id="debugText">—</span>
-          </div>
-         </div>
       </div>
--->
+
       <div class="buttons">
-        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη Σάρωσης</button>
+        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη</button>
         <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
       </div>
-<!--
+
       <div class="mini-note">
         Συμβουλή: Χρησιμοποίησε <strong>http://localhost</strong> ή <strong>https</strong> για άδεια κάμερας.
       </div>
--->      
     </section>
 
     <section class="panel panel-result">
@@ -148,17 +123,15 @@
         <span class="pill pill-neutral">Preview</span>
       </div>
 
-      <div class="result-block">
-        <p class="label">Κείμενο (απόδοση):</p>
+      <div class="result-block result-main">
+        <p class="label">Κείμενο:</p>
         <div id="rendered" class="rendered">Hello World!</div>
       </div>
 
-      <div class="result-block">
+      <div class="result-block result-code">
         <div class="label-row">
-          <p class="label">Κώδικας HTML:</p>
-<!--          
+          <p class="label">Κώδικας:</p>
           <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">Αντιγραφή</button>
--->        
         </div>
         <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
       </div>
@@ -169,7 +142,6 @@
     </section>
   </main>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script src="app.js"></script>
