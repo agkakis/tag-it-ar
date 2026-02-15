@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // UI refs
   const statusText = document.getElementById("statusText");
-  const debugText = document.getElementById("debugText");
   const detectedTag = document.getElementById("detectedTag");
+  const hintText = document.getElementById("hintText");
+
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
 
@@ -11,174 +13,123 @@ document.addEventListener("DOMContentLoaded", () => {
   const sceneEl = document.getElementById("scene");
   const arWrap = document.getElementById("arWrap");
 
-  const themeBtn = document.getElementById("themeBtn");
-  const toastEl = document.getElementById("toast");
-  const scanPill = document.getElementById("scanPill");
-
+  // Config
   const RESET_DELAY_MS = 2000;
-  const DEFAULT_RENDERED_TEXT = "Hello World!";
-  const DEFAULT_CODE = "&lt;p&gt;Hello World!&lt;/p&gt;";
+  const MIND_FILE = "./targets_level1.mind";
 
-  const targetIndexToTag = {
+  // Level 1 mapping (σύμφωνα με τη σειρά σου στο MindAR)
+  const indexToTag = {
     0: "b",
-    1: "del",
-    2: "em",
-    3: "h1",
-    4: "i",
-    5: "mark",
-    6: "strong",
-    7: "sub",
-    8: "sup",
-    9: "u",
+    1: "i",
+    2: "u",
+    3: "mark",
+    4: "del",
+    5: "ins",
+    6: "sub",
+    7: "sup",
+    8: "strong",
+    9: "em",
   };
 
-  /* =========================
-     Utilities
-     ========================= */
+  // Φιλικά μηνύματα (mini επεξήγηση)
+  const tagHints = {
+    b: "Έντονα γράμματα.",
+    i: "Πλάγια γράμματα.",
+    u: "Υπογράμμιση.",
+    mark: "Επισήμανση (highlight).",
+    del: "Διαγραφή (σαν διορθώσεις).",
+    ins: "Εισαγωγή/προσθήκη (σαν διορθώσεις).",
+    sub: "Δείκτης κάτω (π.χ. H₂O).",
+    sup: "Δείκτης πάνω (π.χ. m²).",
+    strong: "Σημαντικό (συνήθως έντονο).",
+    em: "Έμφαση (συνήθως πλάγιο).",
+  };
 
-  function setStatus(msg) {
-    if (statusText) statusText.textContent = msg;
-  }
+  // Default demo
+  const DEFAULT_HTML = "<p>Hello World!</p>";
 
-  function setDebug(msg) {
-    if (debugText) debugText.textContent = msg;
-  }
+  // Ειδικά demos για sub/sup (ώστε να φαίνεται καθαρά)
+  const SPECIAL_DEMOS = {
+    sub: "<p>H<sub>2</sub>O</p>",
+    sup: "<p>m<sup>2</sup></p>",
+  };
 
-  function setScanPill(text) {
-    if (scanPill) scanPill.textContent = text;
-  }
+  function setStatus(msg) { statusText.textContent = msg; }
+  function setDetected(msg) { detectedTag.textContent = msg; }
+  function setHint(msg) { hintText.textContent = msg; }
 
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   }
 
-  function buildHtmlForTag(tagName, text) {
-    const allowed = new Set(Object.values(targetIndexToTag));
-    if (!allowed.has(tagName)) return `<p>${text}</p>`;
-    if (tagName === "h1") return `<h1>${text}</h1>`;
-    return `<p><${tagName}>${text}</${tagName}></p>`;
+  function setDefault() {
+    setDetected("—");
+    setHint("—");
+    rendered.innerHTML = DEFAULT_HTML;
+    codeBox.innerHTML = escapeHtml(DEFAULT_HTML);
   }
 
-  function errToText(e) {
-    const name = e?.name ? `${e.name}` : "Error";
-    const msg = e?.message ? `${e.message}` : String(e);
-    return `${name}: ${msg}`;
-  }
-
-  function resetToDefault() {
-    if (detectedTag) detectedTag.textContent = "—";
-    if (rendered) rendered.textContent = DEFAULT_RENDERED_TEXT;
-    if (codeBox) codeBox.innerHTML = DEFAULT_CODE;
-  }
-
-  let toastTimer = null;
-  function toast(msg) {
-    if (!toastEl) return;
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1400);
-  }
-
-  function playFoundEffect() {
-    if (!arWrap) return;
-    arWrap.classList.add("is-found");
-    setTimeout(() => arWrap.classList.remove("is-found"), 520);
-  }
-
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
-  /* =========================
-     Theme toggle
-     ========================= */
-
-  function applyTheme(theme) {
-    if (!theme) {
-      document.documentElement.removeAttribute("data-theme");
-      localStorage.removeItem("theme");
+  function applyFormattingTag(tagName) {
+    // Αν είναι sub/sup, δείξε ειδικό demo (H2O / m2)
+    if (SPECIAL_DEMOS[tagName]) {
+      const html = SPECIAL_DEMOS[tagName];
+      rendered.innerHTML = html;
+      codeBox.innerHTML = escapeHtml(html);
       return;
     }
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+
+    // Για όλα τα άλλα: τυπικό Hello World μέσα σε <p>
+    const html = `<p><${tagName}>Hello World!</${tagName}></p>`;
+    rendered.innerHTML = html;
+    codeBox.innerHTML = escapeHtml(html);
   }
 
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark" || savedTheme === "light") applyTheme(savedTheme);
-
-  themeBtn?.addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme");
-    const next = cur === "dark" ? "light" : "dark";
-    applyTheme(next);
-    toast(next === "dark" ? "Dark mode" : "Light mode");
-  });
-
-  /* =========================
-     Global error hooks
-     ========================= */
-
-  window.addEventListener("error", (e) => {
-    console.error(e);
-    setStatus("Σφάλμα JS");
-    setDebug(e.message || "Άγνωστο σφάλμα");
-    setScanPill("Error");
-    toast("Κάτι πήγε στραβά (JS)");
-  });
-
-  window.addEventListener("unhandledrejection", (e) => {
-    console.error(e);
-    setStatus("Σφάλμα Promise");
-    setDebug(errToText(e.reason));
-    setScanPill("Error");
-    toast("Κάτι πήγε στραβά (Promise)");
-  });
-
-  /* =========================
-     MindAR start/stop logic
-     ========================= */
-
+  // --- AR state ---
   let arSystem = null;
   let isRunning = false;
-
   let resetTimer = null;
 
-  function scheduleResetAfterLost() {
+  function cancelReset() {
     if (resetTimer) clearTimeout(resetTimer);
+    resetTimer = null;
+  }
+
+  function scheduleResetAfterLost() {
+    cancelReset();
     resetTimer = setTimeout(() => {
-      resetToDefault();
-      if (isRunning) {
-        setStatus("Αναμονή…");
-        setScanPill("Scanning");
-      } else {
-        setStatus("Stopped");
-        setScanPill("Ready");
-      }
-      setDebug(`reset μετά από ${RESET_DELAY_MS}ms`);
+      setDefault();
+      setStatus("Αναμονή…");
     }, RESET_DELAY_MS);
   }
 
-  function cancelScheduledReset() {
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      resetTimer = null;
-    }
-  }
-
-  async function checkTargetsMind() {
-    const res = await fetch("./targets.mind", { cache: "no-store" });
-    if (!res.ok) throw new Error(`targets.mind HTTP ${res.status} (δεν βρίσκεται στο σωστό φάκελο)`);
+  async function checkMindFileReachable(path) {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
   }
 
   async function warmupCameraOnce() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    // Σε mobile απαιτείται user gesture (κουμπί Έναρξη) + HTTPS.
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } }, // πίσω κάμερα
+      audio: false
+    });
     stream.getTracks().forEach(t => t.stop());
   }
 
   function findMindarStreamVideo() {
-    if (!arWrap) return null;
     const vids = Array.from(arWrap.querySelectorAll("video"));
     return vids.find(v => v.srcObject instanceof MediaStream) || null;
+  }
+
+  function stopMindarCameraTracks() {
+    const v = findMindarStreamVideo();
+    const stream = v?.srcObject;
+    if (stream instanceof MediaStream) {
+      stream.getTracks().forEach(t => t.stop());
+      v.srcObject = null;
+      return true;
+    }
+    return false;
   }
 
   function forceMindarVideoVisible() {
@@ -190,202 +141,112 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function ensureArSystemReady(timeoutMs = 3500) {
-    const t0 = Date.now();
-    while (Date.now() - t0 < timeoutMs) {
-      const sys = sceneEl?.systems?.["mindar-image-system"];
-      if (sys) return sys;
-      await sleep(80);
-    }
-    return null;
-  }
-
-  async function ensureVideoStreamVisible(timeoutMs = 2500) {
-    const t0 = Date.now();
-    while (Date.now() - t0 < timeoutMs) {
-      const v = findMindarStreamVideo();
-      if (v && v.srcObject instanceof MediaStream) {
-        forceMindarVideoVisible();
-        return true;
-      }
-      await sleep(120);
-    }
-    return false;
-  }
-
   async function startAR() {
     if (isRunning) return;
 
     try {
-      setStatus("Έλεγχος…");
-      setScanPill("Checking…");
-      setDebug(`${location.protocol}//${location.host} | secureContext=${window.isSecureContext}`);
+      setStatus("Έλεγχος αρχείων…");
+      await checkMindFileReachable(MIND_FILE);
 
-      if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("getUserMedia δεν υποστηρίζεται. Δοκίμασε Chrome/Edge.");
-      }
+      if (!arSystem) throw new Error("AR system not ready.");
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
 
-      await checkTargetsMind();
-
-      if (!arSystem) arSystem = await ensureArSystemReady(3500);
-      if (!arSystem) {
-        throw new Error("Δεν βρέθηκε mindar-image-system. Έλεγξε ότι φορτώνουν τα CDN scripts.");
-      }
-
-      setStatus("Permission κάμερας…");
-      setScanPill("Permission…");
+      setStatus("Ζητάω άδεια κάμερας…");
       await warmupCameraOnce();
 
       setStatus("Ξεκινάω σάρωση…");
-      setScanPill("Starting…");
-      await arSystem.start();
-
+      arSystem.start();
       isRunning = true;
-      setStatus("Σάρωση ενεργή");
-      setScanPill("Scanning");
-      toast("Σάρωση: ON");
 
       startBtn.disabled = true;
       stopBtn.disabled = false;
 
-      // Δώσε λίγο χρόνο και μετά “δέσε” video + layering
-      const ok = await ensureVideoStreamVisible(2500);
-      if (!ok) {
-        setDebug("Δεν βρέθηκε stream video — retry start()");
-        try {
-          await arSystem.stop();
-          await sleep(250);
-          await arSystem.start();
-          await ensureVideoStreamVisible(2500);
-          setDebug("Retry OK");
-        } catch (e) {
-          throw e;
-        }
-      } else {
-        setDebug("Camera stream OK");
-      }
+      setTimeout(() => {
+        if (!isRunning) return;
+        forceMindarVideoVisible();
+        setStatus("Σάρωση ενεργή");
+      }, 600);
 
     } catch (e) {
       console.error(e);
       isRunning = false;
       setStatus("Αποτυχία εκκίνησης");
-      setScanPill("Failed");
-      setDebug(errToText(e));
-      toast("Αποτυχία εκκίνησης");
+      setHint(e?.message ? e.message : String(e));
       startBtn.disabled = false;
       stopBtn.disabled = true;
     }
   }
 
-  async function stopAR() {
+  function stopAR() {
     try {
       if (!arSystem) return;
 
-      cancelScheduledReset();
-      await arSystem.stop();
       isRunning = false;
+      cancelReset();
 
+      setStatus("Σταματάω…");
+
+      arSystem.stop();
+      stopMindarCameraTracks();
+
+      setDefault();
       setStatus("Σταμάτησε");
-      setScanPill("Ready");
-      setDebug("—");
-      resetToDefault();
 
       startBtn.disabled = false;
       stopBtn.disabled = true;
-
-      toast("Σάρωση: OFF");
 
     } catch (e) {
       console.error(e);
       setStatus("Σφάλμα στο stop");
-      setScanPill("Error");
-      setDebug(errToText(e));
-      toast("Σφάλμα στο stop");
+      setHint(e?.message ? e.message : String(e));
     }
   }
 
-  /* Init */
-  async function init() {
+  // --- Scene lifecycle ---
+  sceneEl.addEventListener("loaded", async () => {
     try {
       setStatus("Φόρτωση…");
-      setScanPill("Loading…");
-      setDebug("—");
+      arSystem = sceneEl.systems["mindar-image-system"];
+      if (!arSystem) throw new Error("Δεν βρέθηκε mindar-image-system (φόρτωση script).");
 
-      await checkTargetsMind();
+      await checkMindFileReachable(MIND_FILE);
 
-      arSystem = await ensureArSystemReady(3500);
-      if (!arSystem) {
-        throw new Error("Δεν βρέθηκε mindar-image-system. Έλεγξε ότι φορτώνουν τα CDN scripts.");
-      }
-
-      setStatus("Έτοιμο – πάτα «Έναρξη Σάρωσης»");
-      setScanPill("Ready");
-      setDebug("—");
-
+      setDefault();
+      setStatus("Έτοιμο – πάτα «Έναρξη»");
       startBtn.disabled = false;
       stopBtn.disabled = true;
-
-      resetToDefault();
-      toast("Έτοιμο!");
 
     } catch (e) {
       console.error(e);
       setStatus("Σφάλμα αρχικοποίησης");
-      setScanPill("Error");
-      setDebug(errToText(e));
-      toast("Σφάλμα αρχικοποίησης");
+      setHint(e?.message ? e.message : String(e));
       startBtn.disabled = true;
       stopBtn.disabled = true;
     }
-  }
-
-  if (sceneEl?.hasLoaded) init();
-  else sceneEl?.addEventListener("loaded", init);
-
-  sceneEl?.addEventListener("arReady", () => {
-    if (isRunning) {
-      setStatus("Σάρωση ενεργή");
-      setScanPill("Scanning");
-      setDebug("arReady");
-    }
   });
 
-  sceneEl?.addEventListener("arError", () => {
-    setStatus("arError (MindAR)");
-    setScanPill("Error");
-    setDebug("Δες Console (F12) για λεπτομέρειες");
-    toast("MindAR: arError");
-  });
+  // Buttons
+  startBtn.addEventListener("click", startAR);
+  stopBtn.addEventListener("click", stopAR);
 
-  startBtn?.addEventListener("click", startAR);
-  stopBtn?.addEventListener("click", stopAR);
-
-  /* Targets */
+  // Targets 0..9
   for (let i = 0; i < 10; i++) {
     const entity = document.getElementById(`t${i}`);
     if (!entity) continue;
 
     entity.addEventListener("targetFound", () => {
-      cancelScheduledReset();
+      cancelReset();
 
-      const tagName = targetIndexToTag[i];
-      if (detectedTag) detectedTag.textContent = `<${tagName}>`;
-
-      const html = buildHtmlForTag(tagName, "Hello World!");
-      if (codeBox) codeBox.innerHTML = escapeHtml(html);
-      if (rendered) rendered.innerHTML = html;
-
+      const tag = indexToTag[i];
+      setDetected(`<${tag}>`);
+      setHint(tagHints[tag] || "—");
       setStatus("Εντοπίστηκε κάρτα");
-      setScanPill("Found");
-      setDebug(`targetFound index=${i}`);
 
-      playFoundEffect();
+      applyFormattingTag(tag);
     });
 
     entity.addEventListener("targetLost", () => {
       setStatus("Η κάρτα χάθηκε – επιστροφή σε 2s…");
-      setScanPill("Lost…");
-      setDebug(`targetLost index=${i}`);
       scheduleResetAfterLost();
     });
   }
