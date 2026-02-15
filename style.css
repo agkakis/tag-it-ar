@@ -83,12 +83,12 @@ body {
 }
 
 .badge {
-  font-size: 24px;
+  font-size: 12px;
   padding: 6px 10px;
   border-radius: 999px;
   background: rgba(59,130,246,0.12);
   color: #ffffff;
-  border: 1px solid rgba(59,130,246,0.25);
+  border: 1px solid rgba(56,182,255,0.25);
 }
 
 .badge-green {
