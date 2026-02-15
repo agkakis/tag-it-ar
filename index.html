@@ -2,8 +2,8 @@
 <html lang="el">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tag-it-AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tag-it-AR — Level 1</title>
 
   <link rel="stylesheet" href="style.css" />
 
@@ -15,52 +15,31 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="logo" aria-hidden="true">
-        <span class="logo-letter">T</span>
-        <span class="logo-spark" aria-hidden="true"></span>
-      </div>
-
-      <div class="brand-text">
+      <div class="logo">T</div>
+      <div>
         <h1>Tag-it-AR</h1>
-        <p>Σκανάρισε μία κάρτα και δες τι κάνει το HTML tag.</p>
-      </div>
-
-      <div class="header-actions">
-        <button id="themeBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή θέματος">
-          Light/Dark
-        </button>
-<!--        
-        <button id="debugBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Εναλλαγή debug preview">
-          Debug
-        </button>
--->        
+        <p>Level 1: Μορφοποίηση κειμένου με κάρτες HTML.</p>
       </div>
     </div>
   </header>
 
   <main class="layout">
+    <!-- SCAN PANEL -->
     <section class="panel panel-scan">
       <div class="panel-title">
-        <div class="panel-title-left">
-          <h2>Κάμερα / Σάρωση</h2>
-          <span class="pill pill-blue">Level 1</span>
-        </div>
-        <span class="pill pill-neutral" id="scanPill">Ready</span>
+        <h2>Σάρωση κάρτας</h2>
+        <span class="badge">Level 1</span>
       </div>
-<!--
+
       <div class="helper">
-        <span class="helper-dot" aria-hidden="true"></span>
-        <span>Στόχευσε την κάρτα μέσα στον κύκλο. Κράτα την σταθερή για 1–2s.</span>
+        Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.
       </div>
--->
+
       <div class="ar-container" id="arWrap">
-        <!--
-          ΣΗΜΑΝΤΙΚΟ: κρατάμε το mindar-image “απλό” (χωρίς videoSettings object) για σταθερότητα.
-        -->
         <a-scene
           id="scene"
           embedded
-          mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
+          mindar-image="imageTargetSrc: ./targets_level1.mind; autoStart: false;"
           vr-mode-ui="enabled: false"
           device-orientation-permission-ui="enabled: false"
           renderer="colorManagement: true, physicallyCorrectLights"
@@ -80,70 +59,34 @@
           <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
         </a-scene>
 
-        <!-- Decorative overlays -->
-        <div class="camera-overlay" aria-hidden="true"></div>
-
         <!-- Reticle -->
         <div class="reticle" aria-hidden="true">
           <div class="reticle-ring"></div>
-          <div class="reticle-crosshair">
-            <span></span><span></span>
-          </div>
           <div class="reticle-dot"></div>
-        </div>
-
-        <div class="camera-hint" aria-hidden="true">
-          Κράτησε την κάρτα στο κέντρο
-        </div>
-
-        <!-- Debug preview (θα παραμείνει κρυφό αν δεν ενεργοποιηθεί από JS) -->
-        <div id="videoDebugBox" class="video-debug" aria-live="polite">
-          <div class="video-debug-title">Debug camera preview</div>
-          <video id="videoDebug" autoplay playsinline muted></video>
         </div>
       </div>
 
-      <div class="status-grid">
-        <div class="status-card">
-          <div class="status-label">Κατάσταση</div>
-          <div class="status-value">
-            <span class="chip chip-blue" id="statusText">Φόρτωση…</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Εντοπίστηκε</div>
-          <div class="status-value">
-            <span class="chip chip-green" id="detectedTag">—</span>
-          </div>
-        </div>
-
-        <div class="status-card">
-          <div class="status-label">Debug</div>
-          <div class="status-value">
-            <span class="chip chip-neutral" id="debugText">—</span>
-          </div>
-        </div>
+      <div class="status">
+        <div><strong>Κατάσταση:</strong> <span id="statusText">Φόρτωση…</span></div>
+        <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
+        <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
       </div>
 
       <div class="buttons">
-        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη Σάρωσης</button>
+        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη</button>
         <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
       </div>
-<!--
-      <div class="mini-note">
-        Συμβουλή: Χρησιμοποίησε <strong>http://localhost</strong> ή <strong>https</strong> για άδεια κάμερας.
-      </div>
--->
+
+      <p class="note">
+        Σημείωση: Για κάμερα σε κινητό χρειάζεται HTTPS (π.χ. GitHub Pages).
+      </p>
     </section>
 
+    <!-- RESULT PANEL -->
     <section class="panel panel-result">
       <div class="panel-title">
-        <div class="panel-title-left">
-          <h2>Αποτέλεσμα</h2>
-          <span class="pill pill-green">HTML</span>
-        </div>
-        <span class="pill pill-neutral">Preview</span>
+        <h2>Αποτέλεσμα</h2>
+        <span class="badge badge-green">HTML</span>
       </div>
 
       <div class="result-block">
@@ -152,12 +95,7 @@
       </div>
 
       <div class="result-block">
-        <div class="label-row">
-          <p class="label">Κώδικας HTML:</p>
-<!--          
-          <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">Αντιγραφή</button>
--->
-        </div>
+        <p class="label">Κώδικας HTML:</p>
         <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
       </div>
 
@@ -166,9 +104,6 @@
       </div>
     </section>
   </main>
-
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script src="app.js"></script>
 </body>
