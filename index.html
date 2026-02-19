@@ -13,18 +13,27 @@
 </head>
 
 <body>
+  <!-- Portrait lock overlay -->
+  <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
+    <div class="orientation-card">
+      <div class="rotate-icon">↻</div>
+      <h2>Γύρισε τη συσκευή</h2>
+      <p>Για καλύτερη εμπειρία, χρησιμοποίησε το Tag-it-AR σε <strong>portrait</strong> θέση.</p>
+      <p class="small">Μόλις γυρίσεις σε portrait, η εφαρμογή θα συνεχίσει αυτόματα.</p>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="brand">
       <div class="logo">T</div>
       <div>
         <h1>Tag-it-AR</h1>
-        <p>Level 1: Μορφοποίηση κειμένου με στοιχεία HTML.</p>
+        <p>Level 1: Μορφοποίηση κειμένου με κάρτες HTML.</p>
       </div>
     </div>
   </header>
 
   <main class="layout">
-    <!-- SCAN PANEL -->
     <section class="panel panel-scan">
       <div class="panel-title">
         <h2>Σάρωση κάρτας</h2>
@@ -46,7 +55,6 @@
         >
           <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-          <!-- Targets 0..9 -->
           <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
           <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
           <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
@@ -59,7 +67,6 @@
           <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
         </a-scene>
 
-        <!-- Reticle -->
         <div class="reticle" aria-hidden="true">
           <div class="reticle-ring"></div>
           <div class="reticle-dot"></div>
@@ -77,10 +84,11 @@
         <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
       </div>
 
-    
+      <p class="note">
+        Σημείωση: Για κάμερα σε κινητό χρειάζεται HTTPS (π.χ. GitHub Pages).
+      </p>
     </section>
 
-    <!-- RESULT PANEL -->
     <section class="panel panel-result">
       <div class="panel-title">
         <h2>Αποτέλεσμα</h2>
