@@ -40,9 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Quiz UI
   const quizBox = document.getElementById("quizBox");
 
-  // -----------------------
-  // Constants / helpers
-  // -----------------------
   const RESET_DELAY_MS = 2000;
 
   function setStatus(msg) { statusText.textContent = msg; }
@@ -58,8 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
     which.classList.add("is-active");
   }
 
+  // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
-    return window.matchMedia("(orientation: portrait)").matches;
+    // μικρό “buffer” για περιπτώσεις address bar
+    return window.innerHeight >= window.innerWidth;
   }
 
   function showOverlay() {
@@ -105,16 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
       contentLabel: "Κείμενο (απόδοση):",
       defaultHtml: "<p>Hello World!</p>",
       indexToTag: {
-        0: "b",
-        1: "i",
-        2: "u",
-        3: "mark",
-        4: "del",
-        5: "ins",
-        6: "sub",
-        7: "sup",
-        8: "strong",
-        9: "em",
+        0: "b", 1: "i", 2: "u", 3: "mark", 4: "del",
+        5: "ins", 6: "sub", 7: "sup", 8: "strong", 9: "em",
       },
       hints: {
         b: "Έντονα γράμματα.",
@@ -129,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
         em: "Έμφαση (συνήθως πλάγιο).",
       },
       apply(tag) {
-        // ειδικά demos για sub/sup
         if (tag === "sub") return "<p>H<sub>2</sub>O</p>";
         if (tag === "sup") return "<p>m<sup>2</sup></p>";
         return `<p><${tag}>Hello World!</${tag}></p>`;
@@ -155,8 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "</main>",
         "</article>"
       ].join(""),
-      // σειρά MindAR για Level 2:
-      // 0 h1, 1 p, 2 br, 3 hr, 4 ul, 5 ol, 6 li, 7 header, 8 main, 9 footer
       indexToTag: { 0:"h1", 1:"p", 2:"br", 3:"hr", 4:"ul", 5:"ol", 6:"li", 7:"header", 8:"main", 9:"footer" },
       hints: {
         h1: "Κύριος τίτλος.",
@@ -226,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // -----------------------
-  // AR (scan) engine
+  // AR engine
   // -----------------------
   let currentLevel = null;
   let sceneEl = null;
@@ -255,8 +243,19 @@ document.addEventListener("DOMContentLoaded", () => {
     contentLabel.textContent = currentLevel.contentLabel;
   }
 
+  function stopAR() {
+    try {
+      if (!arSystem) return;
+      isRunning = false;
+      clearReset();
+      arSystem.stop();
+      stopMindarCameraTracks();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    } catch (_) {}
+  }
+
   function destroyScene() {
-    // stop camera and remove scene
     stopAR();
     if (sceneEl) {
       sceneEl.remove();
@@ -266,10 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildScene(mindFile) {
-    // αφαιρούμε τυχόν παλιά scene
     destroyScene();
 
-    // δημιουργία νέου a-scene
     const s = document.createElement("a-scene");
     s.setAttribute("embedded", "");
     s.setAttribute("vr-mode-ui", "enabled: false");
@@ -291,11 +288,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
     `;
 
-    // μπαίνει ως 1ο παιδί για να μείνει το reticle από πάνω
     arWrap.prepend(s);
     sceneEl = s;
 
-    // όταν φορτώσει, παίρνουμε system + δένουμε events
     sceneEl.addEventListener("loaded", () => {
       arSystem = sceneEl.systems["mindar-image-system"];
       wireTargets();
@@ -405,24 +400,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function stopAR() {
-    try {
-      if (!arSystem) return;
-
-      isRunning = false;
-      clearReset();
-
-      arSystem.stop();
-      stopMindarCameraTracks();
-
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   function enterScan(levelKey) {
     currentLevel = LEVELS[levelKey];
 
@@ -439,10 +416,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setDetected("—");
     setHint("—");
 
-    // φτιάχνουμε νέο scene με το σωστό .mind
     buildScene(currentLevel.mindFile);
 
-    // default content
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
@@ -455,7 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showScreen(homeScreen);
   }
 
-  // Portrait behavior when rotating
   function handleOrientationChange() {
     enforcePortraitUI();
     if (!isPortrait() && isRunning) {
@@ -465,12 +439,17 @@ document.addEventListener("DOMContentLoaded", () => {
       stopBtn.disabled = true;
     }
   }
+
   window.addEventListener("resize", handleOrientationChange);
   window.addEventListener("orientationchange", handleOrientationChange);
+
+  // ✅ κάνε 1–2 checks στην αρχή (σε iOS αλλάζει το viewport μετά το load)
   enforcePortraitUI();
+  setTimeout(enforcePortraitUI, 250);
+  setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz (stage 3)
+  // Quiz
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
@@ -496,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     quizBox.innerHTML = `
       <div class="quiz-q">${quizIndex + 1}/${QUIZ.length}: ${escapeHtml(item.q)}</div>
       <div class="quiz-answers">
-        ${item.a.map((txt, idx) => `<button class="answer-btn" data-idx="${idx}">${escapeHtml(txt)}</button>`).join("")}
+        ${item.a.map((txt, idx) => `<button class="answer-btn" type="button" data-idx="${idx}">${escapeHtml(txt)}</button>`).join("")}
       </div>
       <div class="quiz-footer">
         <div><strong>Σκορ:</strong> ${quizScore}</div>
@@ -531,8 +510,8 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="quiz-q">Τέλος! 🎉</div>
               <p>Σκορ: <strong>${quizScore}</strong> / ${QUIZ.length}</p>
               <div class="buttons">
-                <button id="restartQuiz" class="btn btn-primary">Ξανά</button>
-                <button id="goHomeAfterQuiz" class="btn btn-secondary">Αρχική</button>
+                <button id="restartQuiz" class="btn btn-primary" type="button">Ξανά</button>
+                <button id="goHomeAfterQuiz" class="btn btn-secondary" type="button">Αρχική</button>
               </div>
             `;
             document.getElementById("restartQuiz").addEventListener("click", () => {
@@ -554,8 +533,8 @@ document.addEventListener("DOMContentLoaded", () => {
     topSubtitle.textContent = "Quiz — Έλεγξε τι έμαθες";
     showScreen(quizScreen);
 
-    // portrait overlay (δεν μπλοκάρει το quiz αυστηρά, αλλά το εμφανίζουμε)
     enforcePortraitUI();
+    setTimeout(enforcePortraitUI, 250);
 
     quizIndex = 0;
     quizScore = 0;
