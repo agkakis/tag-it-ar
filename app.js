@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // UI refs
+  const overlay = document.getElementById("portraitOverlay");
+
   const statusText = document.getElementById("statusText");
   const detectedTag = document.getElementById("detectedTag");
   const hintText = document.getElementById("hintText");
@@ -17,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const RESET_DELAY_MS = 2000;
   const MIND_FILE = "./targets_level1.mind";
 
-  // Level 1 mapping (σύμφωνα με τη σειρά σου στο MindAR)
+  // Level 1 mapping
   const indexToTag = {
     0: "b",
     1: "i",
@@ -31,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     9: "em",
   };
 
-  // Φιλικά μηνύματα (mini επεξήγηση)
   const tagHints = {
     b: "Έντονα γράμματα.",
     i: "Πλάγια γράμματα.",
@@ -45,10 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     em: "Έμφαση (συνήθως πλάγιο).",
   };
 
-  // Default demo
   const DEFAULT_HTML = "<p>Hello World!</p>";
-
-  // Ειδικά demos για sub/sup (ώστε να φαίνεται καθαρά)
   const SPECIAL_DEMOS = {
     sub: "<p>H<sub>2</sub>O</p>",
     sup: "<p>m<sup>2</sup></p>",
@@ -70,18 +68,50 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyFormattingTag(tagName) {
-    // Αν είναι sub/sup, δείξε ειδικό demo (H2O / m2)
     if (SPECIAL_DEMOS[tagName]) {
       const html = SPECIAL_DEMOS[tagName];
       rendered.innerHTML = html;
       codeBox.innerHTML = escapeHtml(html);
       return;
     }
-
-    // Για όλα τα άλλα: τυπικό Hello World μέσα σε <p>
     const html = `<p><${tagName}>Hello World!</${tagName}></p>`;
     rendered.innerHTML = html;
     codeBox.innerHTML = escapeHtml(html);
+  }
+
+  // --- Orientation control (reliable) ---
+  function isPortrait() {
+    // πιο αξιόπιστο από orientation APIs
+    return window.matchMedia("(orientation: portrait)").matches;
+  }
+
+  function showOverlay() {
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+
+  function hideOverlay() {
+    overlay.classList.remove("is-visible");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+
+  function enforcePortraitUI() {
+    if (isPortrait()) {
+      hideOverlay();
+    } else {
+      showOverlay();
+    }
+  }
+
+  // Προσπάθεια “κλειδώματος” (δουλεύει σε μερικά Android browsers, όχι iOS Safari)
+  async function tryLockPortrait() {
+    try {
+      if (screen?.orientation?.lock) {
+        await screen.orientation.lock("portrait");
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   // --- AR state ---
@@ -108,9 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function warmupCameraOnce() {
-    // Σε mobile απαιτείται user gesture (κουμπί Έναρξη) + HTTPS.
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } }, // πίσω κάμερα
+      video: { facingMode: { ideal: "environment" } },
       audio: false
     });
     stream.getTracks().forEach(t => t.stop());
@@ -143,6 +172,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function startAR() {
     if (isRunning) return;
+
+    // 1) Πρώτα, απαίτηση portrait (hard UX gate)
+    enforcePortraitUI();
+    if (!isPortrait()) {
+      setStatus("Γύρισε σε portrait για να ξεκινήσεις");
+      return;
+    }
+
+    // 2) Προσπάθησε να κλειδώσεις portrait (αν γίνεται)
+    await tryLockPortrait();
 
     try {
       setStatus("Έλεγχος αρχείων…");
@@ -201,6 +240,22 @@ document.addEventListener("DOMContentLoaded", () => {
       setHint(e?.message ? e.message : String(e));
     }
   }
+
+  // Αν ο χρήστης γυρίσει σε landscape ενώ τρέχει, σταματάμε για ασφάλεια/καθαρό UX
+  function handleOrientationWhileRunning() {
+    enforcePortraitUI();
+    if (!isPortrait() && isRunning) {
+      stopAR();
+      setStatus("Σταμάτησε — γύρισε σε portrait για να συνεχίσεις");
+    }
+  }
+
+  // Listen for orientation changes
+  window.addEventListener("resize", handleOrientationWhileRunning);
+  window.addEventListener("orientationchange", handleOrientationWhileRunning);
+
+  // Initial check
+  enforcePortraitUI();
 
   // --- Scene lifecycle ---
   sceneEl.addEventListener("loaded", async () => {
