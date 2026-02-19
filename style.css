@@ -1,11 +1,63 @@
-:root {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
+:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
 body {
   margin: 0;
   background: linear-gradient(180deg, #fff7e6 0%, #f2fbff 55%, #f7f4ef 100%);
   color: #111;
+}
+
+/* Portrait overlay (μπλοκάρει landscape χρήση) */
+.orientation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: none;            /* ενεργοποιείται από JS */
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+}
+
+.orientation-overlay.is-visible { display: flex; }
+
+.orientation-card {
+  width: min(520px, 92vw);
+  background: white;
+  border-radius: 18px;
+  padding: 16px 16px 14px 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.10);
+}
+
+.rotate-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 8px auto;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+}
+
+.orientation-card h2 {
+  margin: 6px 0 6px 0;
+  font-size: 18px;
+}
+
+.orientation-card p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #222;
+}
+
+.orientation-card p.small {
+  font-size: 12px;
+  color: #555;
 }
 
 .topbar {
@@ -14,34 +66,18 @@ body {
   background: white;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.brand { display: flex; align-items: center; gap: 12px; }
 
 .logo {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  color: white;
+  width: 42px; height: 42px; border-radius: 14px;
+  display: grid; place-items: center;
+  font-weight: 900; color: white;
   background: linear-gradient(135deg, #3b82f6, #22c55e);
   box-shadow: 0 10px 20px rgba(0,0,0,0.10);
 }
 
-.topbar h1 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.topbar p {
-  margin: 2px 0 0 0;
-  color: #333;
-  font-size: 13px;
-}
+.topbar h1 { margin: 0; font-size: 18px; }
+.topbar p { margin: 2px 0 0 0; color: #333; font-size: 13px; }
 
 .layout {
   display: grid;
@@ -50,12 +86,9 @@ body {
   grid-template-columns: 1fr;
 }
 
-/* Σε tablets/landscape δύο στήλες */
-@media (min-width: 820px) {
-  .layout {
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
-  }
+/* tablets portrait: 2 στήλες μόνο αν υπάρχει αρκετό πλάτος */
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
 .panel {
@@ -69,26 +102,16 @@ body {
 .panel-scan { border-top: 6px solid #3b82f6; }
 .panel-result { border-top: 6px solid #22c55e; }
 
-.panel-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.panel-title h2 {
-  margin: 0;
-  font-size: 16px;
-}
+.panel-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.panel-title h2 { margin:0; font-size:16px; }
 
 .badge {
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(59,130,246,1);
-  color: #ffffff;
-  border: 1px solid rgba(56,182,255,0.25);
+  background: rgba(59,130,246,0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(59,130,246,0.25);
 }
 
 .badge-green {
@@ -107,7 +130,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* AR container — mobile-first (μικρότερο για να μην φαίνεται κυρίως πρόσωπο) */
+/* AR container */
 .ar-container {
   width: 100%;
   height: 260px;
@@ -116,15 +139,11 @@ body {
   background: #000;
   position: relative;
   border: 2px dashed rgba(0,0,0,0.18);
-  isolation: isolate; /* κρατάει absolute μέσα στο πλαίσιο */
+  isolation: isolate;
 }
 
-/* Σε πολύ μικρές οθόνες λίγο μεγαλύτερο */
-@media (max-width: 380px) {
-  .ar-container { height: 290px; }
-}
+@media (max-width: 380px) { .ar-container { height: 290px; } }
 
-/* Το scene κλειδωμένο μέσα στο container */
 .ar-container a-scene {
   position: absolute !important;
   inset: 0 !important;
@@ -132,7 +151,6 @@ body {
   height: 100% !important;
 }
 
-/* Camera video/canvas να μη μπλοκάρουν taps */
 .ar-container a-scene video,
 .ar-container a-scene canvas {
   pointer-events: none !important;
@@ -157,7 +175,6 @@ body {
   background: transparent !important;
 }
 
-/* Reticle */
 .reticle {
   position: absolute;
   inset: 0;
@@ -168,8 +185,7 @@ body {
 }
 
 .reticle-ring {
-  width: 120px;
-  height: 120px;
+  width: 120px; height: 120px;
   border-radius: 999px;
   border: 4px solid rgba(255,255,255,0.85);
   box-shadow: 0 0 0 8px rgba(59,130,246,0.18);
@@ -177,28 +193,15 @@ body {
 
 .reticle-dot {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 10px; height: 10px;
   border-radius: 999px;
   background: rgba(255,255,255,0.95);
   box-shadow: 0 0 0 6px rgba(34,197,94,0.20);
 }
 
-/* Status */
-.status {
-  margin: 10px 0;
-  display: grid;
-  gap: 6px;
-  font-size: 13px;
-}
+.status { margin: 10px 0; display:grid; gap:6px; font-size:13px; }
 
-/* Buttons */
-.buttons {
-  margin-top: 8px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+.buttons { margin-top: 8px; display:flex; gap:10px; flex-wrap:wrap; }
 
 .btn {
   padding: 12px 14px;
@@ -217,30 +220,15 @@ body {
   box-shadow: 0 12px 24px rgba(0,0,0,0.10);
 }
 
-.btn-secondary {
-  background: #fff;
-  color: #111;
-}
+.btn-secondary { background:#fff; color:#111; }
 
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
+.btn:disabled { opacity:0.55; cursor:not-allowed; }
 
-.note {
-  margin: 10px 0 0 0;
-  font-size: 12px;
-  color: #555;
-}
+.note { margin: 10px 0 0 0; font-size: 12px; color: #555; }
 
-/* Results */
 .result-block { margin-top: 12px; }
 
-.label {
-  margin: 0 0 6px 0;
-  font-size: 13px;
-  color: #374151;
-}
+.label { margin:0 0 6px 0; font-size:13px; color:#374151; }
 
 .rendered {
   font-size: 22px;
