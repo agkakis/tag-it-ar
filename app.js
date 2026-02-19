@@ -55,9 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     which.classList.add("is-active");
   }
 
-  // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
-    // μικρό “buffer” για περιπτώσεις address bar
     return window.innerHeight >= window.innerWidth;
   }
 
@@ -164,14 +162,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const p2 = "Το HTML οργανώνει το περιεχόμενο μιας σελίδας.";
         const items = ["Τίτλος", "Παράγραφοι", "Λίστες"];
         const signature = "— Tag-it-AR";
+
         const ul = `<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
         const ol = `<ol>${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
 
         const box = (label, inner) =>
-          `<div style="border:2px solid rgba(34,197,94,.45);border-radius:12px;padding:10px;margin:6px 0;background:rgba(34,197,94,.06);">
-            <div style="font-size:12px;font-weight:900;color:#14532d;margin-bottom:6px;">${label}</div>
+          `<section class="l2-box">
+            <div class="l2-box__label">${label}</div>
             ${inner}
-          </div>`;
+          </section>`;
 
         switch (tag) {
           case "h1":
@@ -194,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
               + box("Κείμενο", `<p>${p1}</p><p>${p2}</p>`);
           case "li":
             return box("Στοιχείο λίστας (<li>)", `<ul><li>${items[0]}</li></ul>`)
-              + `<div style="font-size:12px;color:#14532d;margin-top:6px;">
+              + `<div class="l2-note">
                    Το <strong>&lt;li&gt;</strong> μπαίνει μέσα σε <strong>&lt;ul&gt;</strong> ή <strong>&lt;ol&gt;</strong> 🙂
                  </div>`;
           case "header":
@@ -443,13 +442,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", handleOrientationChange);
   window.addEventListener("orientationchange", handleOrientationChange);
 
-  // ✅ κάνε 1–2 checks στην αρχή (σε iOS αλλάζει το viewport μετά το load)
   enforcePortraitUI();
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz
+  // Quiz (ίδιο όπως πριν)
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
@@ -541,9 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
-  // -----------------------
   // Wiring UI
-  // -----------------------
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
