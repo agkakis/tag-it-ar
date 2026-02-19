@@ -41,17 +41,17 @@
         <p class="screen-subtitle">Σάρωσε 1 κάρτα κάθε φορά και δες αμέσως το αποτέλεσμα.</p>
 
         <div class="menu-grid">
-          <button id="goL1" class="menu-card blue">
+          <button id="goL1" class="menu-card blue" type="button">
             <div class="menu-title">Level 1</div>
             <div class="menu-desc">Μορφοποίηση κειμένου (μπλε κάρτες)</div>
           </button>
 
-          <button id="goL2" class="menu-card green">
+          <button id="goL2" class="menu-card green" type="button">
             <div class="menu-title">Level 2</div>
             <div class="menu-desc">Δομή άρθρου (πράσινες κάρτες)</div>
           </button>
 
-          <button id="goQuiz" class="menu-card purple">
+          <button id="goQuiz" class="menu-card purple" type="button">
             <div class="menu-title">Quiz</div>
             <div class="menu-desc">Έλεγξε τι έμαθες (χωρίς κάμερα)</div>
           </button>
@@ -72,7 +72,7 @@
               <h2 id="scanTitle">Σάρωση κάρτας</h2>
               <p class="mini" id="scanMini">—</p>
             </div>
-            <button id="backHomeFromScan" class="btn btn-secondary small">⬅ Αρχική</button>
+            <button id="backHomeFromScan" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
           </div>
 
           <div class="helper" id="helperText">
@@ -94,8 +94,8 @@
           </div>
 
           <div class="buttons">
-            <button id="startBtn" class="btn btn-primary" disabled>Έναρξη</button>
-            <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
+            <button id="startBtn" class="btn btn-primary" type="button" disabled>Έναρξη</button>
+            <button id="stopBtn" class="btn btn-secondary" type="button" disabled>Διακοπή</button>
           </div>
         </section>
 
@@ -130,12 +130,10 @@
             <h2>Quiz</h2>
             <p class="mini">Διάλεξε τη σωστή απάντηση.</p>
           </div>
-          <button id="backHomeFromQuiz" class="btn btn-secondary small">⬅ Αρχική</button>
+          <button id="backHomeFromQuiz" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
         </div>
 
-        <div id="quizBox" class="quiz-box">
-          <!-- Γεμίζει από app.js -->
-        </div>
+        <div id="quizBox" class="quiz-box"></div>
       </div>
     </section>
   </main>
