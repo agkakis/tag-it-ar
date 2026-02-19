@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tag-it-AR — Level 1</title>
+  <title>Tag-it-AR</title>
 
   <link rel="stylesheet" href="style.css" />
 
@@ -13,13 +13,13 @@
 </head>
 
 <body>
-  <!-- Portrait lock overlay -->
+  <!-- Portrait-only overlay -->
   <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
     <div class="orientation-card">
       <div class="rotate-icon">↻</div>
       <h2>Γύρισε τη συσκευή</h2>
       <p>Για καλύτερη εμπειρία, χρησιμοποίησε το Tag-it-AR σε <strong>portrait</strong> θέση.</p>
-      <p class="small">Μόλις γυρίσεις σε portrait, η εφαρμογή θα συνεχίσει αυτόματα.</p>
+      <p class="small">Μόλις γυρίσεις σε portrait, συνεχίζει αυτόματα.</p>
     </div>
   </div>
 
@@ -28,85 +28,114 @@
       <div class="logo">T</div>
       <div>
         <h1>Tag-it-AR</h1>
-        <p>Level 1: Μορφοποίηση κειμένου με κάρτες HTML.</p>
+        <p id="topSubtitle">Μάθε HTML με κάρτες AR.</p>
       </div>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="panel panel-scan">
-      <div class="panel-title">
-        <h2>Σάρωση κάρτας</h2>
-        <span class="badge">Level 1</span>
-      </div>
+  <main class="shell">
+    <!-- HOME SCREEN -->
+    <section id="homeScreen" class="screen is-active">
+      <div class="panel">
+        <h2 class="screen-title">Διάλεξε επίπεδο</h2>
+        <p class="screen-subtitle">Σάρωσε 1 κάρτα κάθε φορά και δες αμέσως το αποτέλεσμα.</p>
 
-      <div class="helper">
-        Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.
-      </div>
+        <div class="menu-grid">
+          <button id="goL1" class="menu-card blue">
+            <div class="menu-title">Level 1</div>
+            <div class="menu-desc">Μορφοποίηση κειμένου (μπλε κάρτες)</div>
+          </button>
 
-      <div class="ar-container" id="arWrap">
-        <a-scene
-          id="scene"
-          embedded
-          mindar-image="imageTargetSrc: ./targets_level1.mind; autoStart: false;"
-          vr-mode-ui="enabled: false"
-          device-orientation-permission-ui="enabled: false"
-          renderer="colorManagement: true, physicallyCorrectLights"
-        >
-          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+          <button id="goL2" class="menu-card green">
+            <div class="menu-title">Level 2</div>
+            <div class="menu-desc">Δομή άρθρου (πράσινες κάρτες)</div>
+          </button>
 
-          <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
-          <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
-          <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
-          <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
-          <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
-          <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
-          <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
-          <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
-          <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
-          <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
-        </a-scene>
-
-        <div class="reticle" aria-hidden="true">
-          <div class="reticle-ring"></div>
-          <div class="reticle-dot"></div>
+          <button id="goQuiz" class="menu-card purple">
+            <div class="menu-title">Quiz</div>
+            <div class="menu-desc">Έλεγξε τι έμαθες (χωρίς κάμερα)</div>
+          </button>
         </div>
-      </div>
 
-      <div class="status">
-        <div><strong>Κατάσταση:</strong> <span id="statusText">Φόρτωση…</span></div>
-        <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
-        <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
+        <p class="note">
+          Για χρήση κάμερας απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
+        </p>
       </div>
-
-      <div class="buttons">
-        <button id="startBtn" class="btn btn-primary" disabled>Έναρξη</button>
-        <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
-      </div>
-
-      <p class="note">
-        Σημείωση: Για κάμερα σε κινητό χρειάζεται HTTPS (π.χ. GitHub Pages).
-      </p>
     </section>
 
-    <section class="panel panel-result">
-      <div class="panel-title">
-        <h2>Αποτέλεσμα</h2>
-        <span class="badge badge-green">HTML</span>
-      </div>
+    <!-- SCAN SCREEN (Level 1 / Level 2) -->
+    <section id="scanScreen" class="screen">
+      <div class="layout">
+        <section class="panel panel-scan">
+          <div class="panel-title">
+            <div>
+              <h2 id="scanTitle">Σάρωση κάρτας</h2>
+              <p class="mini" id="scanMini">—</p>
+            </div>
+            <button id="backHomeFromScan" class="btn btn-secondary small">⬅ Αρχική</button>
+          </div>
 
-      <div class="result-block">
-        <p class="label">Κείμενο (απόδοση):</p>
-        <div id="rendered" class="rendered">Hello World!</div>
-      </div>
+          <div class="helper" id="helperText">
+            Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.
+          </div>
 
-      <div class="result-block">
-        <p class="label">Κώδικας HTML:</p>
-        <pre class="code"><code id="codeBox">&lt;p&gt;Hello World!&lt;/p&gt;</code></pre>
-      </div>
+          <div class="ar-container" id="arWrap">
+            <!-- Το a-scene θα δημιουργείται δυναμικά από app.js -->
+            <div class="reticle" aria-hidden="true">
+              <div class="reticle-ring"></div>
+              <div class="reticle-dot"></div>
+            </div>
+          </div>
 
-      <div class="tip">
-        Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το κείμενο επιστρέφει στο αρχικό.
+          <div class="status">
+            <div><strong>Κατάσταση:</strong> <span id="statusText">—</span></div>
+            <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
+            <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
+          </div>
+
+          <div class="buttons">
+            <button id="startBtn" class="btn btn-primary" disabled>Έναρξη</button>
+            <button id="stopBtn" class="btn btn-secondary" disabled>Διακοπή</button>
+          </div>
+        </section>
+
+        <section class="panel panel-result">
+          <div class="panel-title">
+            <h2>Αποτέλεσμα</h2>
+            <span class="badge badge-green">HTML</span>
+          </div>
+
+          <div class="result-block">
+            <p class="label" id="contentLabel">Κείμενο (απόδοση):</p>
+            <div id="rendered" class="rendered">—</div>
+          </div>
+
+          <div class="result-block">
+            <p class="label">Κώδικας HTML:</p>
+            <pre class="code"><code id="codeBox">—</code></pre>
+          </div>
+
+          <div class="tip">
+            Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το περιεχόμενο επιστρέφει στο αρχικό.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- QUIZ SCREEN -->
+    <section id="quizScreen" class="screen">
+      <div class="panel">
+        <div class="panel-title">
+          <div>
+            <h2>Quiz</h2>
+            <p class="mini">Διάλεξε τη σωστή απάντηση.</p>
+          </div>
+          <button id="backHomeFromQuiz" class="btn btn-secondary small">⬅ Αρχική</button>
+        </div>
+
+        <div id="quizBox" class="quiz-box">
+          <!-- Γεμίζει από app.js -->
+        </div>
       </div>
     </section>
   </main>
