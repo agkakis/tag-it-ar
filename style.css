@@ -4,12 +4,12 @@ body {
   margin: 0;
   background: linear-gradient(180deg, #fff7e6 0%, #f2fbff 55%, #f7f4ef 100%);
   color: #111;
-
-  /* ✅ κόβει οριζόντια κύλιση σε όλη την εφαρμογή */
-  overflow-x: hidden;
 }
 
-/* Portrait overlay */
+/* Portrait overlay:
+   - pointer-events: none όταν είναι κρυφό (ώστε να μην “τρώει” taps)
+   - pointer-events: auto όταν φαίνεται
+*/
 .orientation-overlay {
   position: fixed;
   inset: 0;
@@ -77,9 +77,6 @@ body {
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-
-  /* ✅ αποτρέπει overflow μέσα σε panels */
-  overflow-x: hidden;
 }
 
 .panel-scan { border-top: 6px solid #3b82f6; }
@@ -123,7 +120,10 @@ body {
 .screen-title { margin: 4px 0 0 0; font-size: 18px; }
 .screen-subtitle { margin: 6px 0 12px 0; font-size: 13px; color: #444; }
 
-.menu-grid { display: grid; gap: 12px; }
+.menu-grid {
+  display: grid;
+  gap: 12px;
+}
 
 .menu-card {
   text-align: left;
@@ -133,7 +133,7 @@ body {
   cursor: pointer;
   background: white;
   box-shadow: 0 10px 24px rgba(0,0,0,0.06);
-  touch-action: manipulation;
+  touch-action: manipulation; /* βελτιώνει taps σε mobile */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -251,55 +251,12 @@ body {
 .result-block { margin-top: 12px; }
 .label { margin: 0 0 6px 0; font-size: 13px; color: #374151; }
 
-/* ✅ εδώ είναι το κλειδί για το Level 2 overflow */
 .rendered {
   font-size: 22px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,0.10);
   background: linear-gradient(180deg, #ffffff, #fafafa);
-
-  width: 100%;
-  box-sizing: border-box;
-
-  overflow-x: hidden;              /* κόβει side overflow */
-  overflow-y: visible;
-
-  overflow-wrap: anywhere;         /* σπάει μεγάλες “λέξεις/strings” */
-  word-break: break-word;
-}
-
-/* όλα τα παιδιά να μην ξεφεύγουν */
-.rendered * {
-  box-sizing: border-box;
-  max-width: 100%;
-}
-
-/* ✅ “μαζεύουμε” τα defaults που συχνά προκαλούν overflow */
-.rendered h1, .rendered p { margin: 8px 0; }
-.rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
-.rendered li { margin: 4px 0; }
-.rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
-
-/* Level 2 demo boxes */
-.l2-box {
-  width: 100%;
-  border: 2px solid rgba(34,197,94,.45);
-  border-radius: 12px;
-  padding: 10px;
-  margin: 8px 0;
-  background: rgba(34,197,94,.06);
-}
-.l2-box__label {
-  font-size: 12px;
-  font-weight: 900;
-  color: #14532d;
-  margin-bottom: 6px;
-}
-.l2-note {
-  font-size: 12px;
-  color: #14532d;
-  margin-top: 8px;
 }
 
 .code {
