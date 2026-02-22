@@ -146,7 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
 
-      // ✅ Before (όπως το έδωσες), compact για κινητό
       defaultHtml: `
         <div class="l2-box">
           <div class="l2-box__label">Before (χωρίς δομή)</div>
@@ -162,7 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
-        const sentence = "Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:";
+        const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
+        const sentenceB = "και περιέχει:";
         const items = ["Κείμενα", "Εικόνες", "ήχους"];
 
         const box = (label, inner) =>
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // BEFORE: πάντα ίδιο
+        // BEFORE (σταθερό)
         const beforeHtml = box(
           "Before (χωρίς δομή)",
           `<div class="l2-before">
@@ -182,65 +182,44 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>`
         );
 
-        // AFTER: συνθέτουμε το ίδιο περιεχόμενο, αλλά κάθε tag “ενεργοποιεί”
-        // μόνο το δικό του μέρος (και το τονίζουμε με l2-focus).
-
-        // 1) Title: μόνο όταν tag==h1 γίνεται πραγματικό <h1>
-        const titleHtml =
+        // AFTER: ενεργοποιείται μόνο το tag που σκανάρεις (και το highlight είναι ορατό)
+        const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        // 2) Divider: μόνο όταν tag==hr βάζουμε <hr> αμέσως μετά τον τίτλο
-        const hrHtml =
+        // hr: το βάζουμε μέσα σε wrapper για να μπορεί να γίνει highlight σωστά
+        const dividerBlock =
           tag === "hr"
-            ? `<hr class="${focus("hr")}">`
+            ? `<div class="${focus("hr")}"><hr></div>`
             : `<div class="${focus("hr")}" style="height:10px"></div>`;
 
-        // 3) Sentence: για p/br
-        // - p: η πρόταση γίνεται <p>
-        // - br: σπάει σε 2 γραμμές μέσα στο ίδιο block (χωρίς να χρειάζεται p)
+        // sentence: p/br
         const sentenceInner =
           tag === "br"
-            ? "Αυτή είναι η πρώτη μου ιστοσελίδα<br>και περιέχει:"
-            : sentence;
+            ? `${sentenceA}<br>${sentenceB}`
+            : `${sentenceA} ${sentenceB}`;
 
-        const sentenceHtml =
+        // highlight στο block όταν tag==p ή tag==br (το <br> μόνο του δεν γίνεται να "τονιστεί")
+        const sentenceClass = (tag === "p" || tag === "br") ? "l2-focus" : "";
+        const sentenceBlock =
           tag === "p"
-            ? `<p class="${focus("p")}">${sentenceInner}</p>`
-            : `<div class="${focus("p")}">${sentenceInner}</div>`;
+            ? `<p class="${sentenceClass}">${sentenceInner}</p>`
+            : `<div class="${sentenceClass}">${sentenceInner}</div>`;
 
-        // 4) List: για ul/ol
-        // - ul: bullets
-        // - ol: αριθμημένη
-        // αλλιώς: “σκέτη” εμφάνιση με <br> ώστε να φαίνεται διαφορά
-        let listHtml = "";
+        // list: ul/ol, αλλιώς σκέτη μορφή με <br>
+        let listBlock = "";
         if (tag === "ul") {
-          listHtml = `
-            <ul class="${focus("ul")}">
-              ${items.map(x => `<li>${x}</li>`).join("")}
-            </ul>
-          `.trim();
+          listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
         } else if (tag === "ol") {
-          listHtml = `
-            <ol class="${focus("ol")}">
-              ${items.map(x => `<li>${x}</li>`).join("")}
-            </ol>
-          `.trim();
+          listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
         } else {
-          // default list view (χωρίς ul/ol) για να “γράφει” το before→after
-          listHtml = `
-            <div>
-              ${items[0]}<br>
-              ${items[1]} και<br>
-              ${items[2]}
-            </div>
-          `.trim();
+          listBlock = `<div>${items[0]}<br>${items[1]} και<br>${items[2]}</div>`;
         }
 
         const afterHtml = box(
           `After (με <${tag}>)`,
-          `${titleHtml}${hrHtml}${sentenceHtml}${listHtml}`
+          `${titleBlock}${dividerBlock}${sentenceBlock}${listBlock}`
         );
 
         return `${beforeHtml}${afterHtml}`;
@@ -483,19 +462,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz (κρατάμε το υπάρχον απλό quiz)
+  // Quiz (απλό)
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
     { q: "Τι κάνει το <u>;", a: ["Υπογράμμιση", "Τίτλο", "Λίστα"], correct: 0 },
     { q: "Τι κάνει το <mark>;", a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"], correct: 1 },
-    { q: "Τι δείχνει το <del>;", a: ["Διαγραφή", "Εισαγωγή", "Δείκτη πάνω"], correct: 0 },
-    { q: "Τι δείχνει το <ins>;", a: ["Διαγραφή", "Προσθήκη/εισαγωγή", "Δείκτη κάτω"], correct: 1 },
-    { q: "Πότε χρησιμοποιούμε <sub>;", a: ["m²", "H₂O", "Λίστα"], correct: 1 },
-    { q: "Πότε χρησιμοποιούμε <sup>;", a: ["H₂O", "m²", "Τίτλο"], correct: 1 },
-    { q: "Τι σημαίνει συνήθως <strong>;", a: ["Έμφαση/σημαντικό", "Υπογράμμιση", "Διαχωριστικό"], correct: 0 },
-    { q: "Τι σημαίνει συνήθως <em>;", a: ["Έμφαση (συνήθως πλάγιο)", "Λίστα", "Νέα γραμμή"], correct: 0 },
   ];
 
   let quizIndex = 0;
@@ -575,9 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
-  // -----------------------
   // Wiring UI
-  // -----------------------
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
@@ -592,6 +563,5 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus("Σταμάτησε");
   });
 
-  // Initial state
   showScreen(homeScreen);
 });
