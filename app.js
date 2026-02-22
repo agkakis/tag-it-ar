@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
-    // μικρό “buffer” για περιπτώσεις address bar
     return window.innerHeight >= window.innerWidth;
   }
 
@@ -97,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const LEVELS = {
     L1: {
       key: "L1",
+      numTargets: 10,
       title: "Level 1 — Μορφοποίηση",
       mini: "Μπλε κάρτες: μορφοποίηση στο “Hello World!”",
       helper: "Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.",
@@ -128,87 +128,89 @@ document.addEventListener("DOMContentLoaded", () => {
 
     L2: {
       key: "L2",
+      numTargets: 6,
       title: "Level 2 — Δομή",
-      mini: "Πράσινες κάρτες: δομή πάνω σε μικρό άρθρο",
-      helper: "Σκανάρισε δομικές κάρτες για να οργανώσεις το “Η Τάξη μας”.",
+      mini: "Πράσινες κάρτες: από “Before” σε “After” (δομή)",
+      helper: "Σκανάρισε κάρτες δομής και δες καθαρά Before → After στο ίδιο περιεχόμενο.",
       mindFile: "./targets_level2.mind",
-      contentLabel: "Μικρό άρθρο (απόδοση):",
-      defaultHtml: [
-        "<article>",
-        "<header><h1>Η Τάξη μας</h1></header>",
-        "<main>",
-        "<p>Σήμερα μαθαίνουμε HTML!</p>",
-        "<p>Το HTML οργανώνει το περιεχόμενο μιας σελίδας.</p>",
-        "<ul><li>Τίτλος</li><li>Παράγραφοι</li><li>Λίστες</li></ul>",
-        "<hr>",
-        "<footer>— Tag-it-AR</footer>",
-        "</main>",
-        "</article>"
-      ].join(""),
-      indexToTag: { 0:"h1", 1:"p", 2:"br", 3:"hr", 4:"ul", 5:"ol", 6:"li", 7:"header", 8:"main", 9:"footer" },
+      contentLabel: "Before (χωρίς δομή):",
+
+      // ✅ BEFORE: 1 γραμμή, μικρό για mobile
+      defaultHtml: `
+        <div class="l2-box">
+          <div class="l2-box__label">Before (χωρίς δομή)</div>
+          <div class="l2-before">
+            Mini οδηγός HTML: Στόχος να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες.
+            Τι θα δεις σήμερα: δομή, bullets, βήματα.
+            Bullets: Δομή σελίδας, Καθαρό κείμενο, Έλεγχος πριν το quiz.
+            Βήματα: 1 Διάβασε, 2 Σημείωσε, 3 Εφάρμοσε.
+            Σημείωση: γραμμή Α / γραμμή Β.
+          </div>
+        </div>
+      `.trim(),
+
+      // Τα 6 tags σου (αν τα .mind σου είναι 6 targets, αυτό είναι το σωστό mapping)
+      indexToTag: { 0: "h1", 1: "p", 2: "ul", 3: "ol", 4: "br", 5: "hr" },
+
       hints: {
-        h1: "Κύριος τίτλος.",
-        p: "Παράγραφος.",
-        br: "Αλλαγή γραμμής.",
-        hr: "Διαχωριστικό γραμμή.",
-        ul: "Λίστα με κουκκίδες.",
-        ol: "Αριθμημένη λίστα.",
-        li: "Στοιχείο λίστας (μπαίνει μέσα σε ul/ol).",
-        header: "Κεφαλίδα (πάνω μέρος).",
-        main: "Κύριο περιεχόμενο.",
-        footer: "Υποσέλιδο (υπογραφή/πηγή).",
+        h1: "Κύριος τίτλος (μία φορά ανά σελίδα).",
+        p: "Παράγραφος: καθαρίζει/ομαδοποιεί προτάσεις.",
+        ul: "Λίστα bullets (χωρίς σειρά).",
+        ol: "Λίστα βημάτων (με σειρά).",
+        br: "Αλλαγή γραμμής μέσα στο ίδιο block.",
+        hr: "Οπτικός διαχωριστής ενότητας.",
       },
+
       apply(tag) {
-        const title = "Η Τάξη μας";
-        const p1 = "Σήμερα μαθαίνουμε HTML!";
-        const p2 = "Το HTML οργανώνει το περιεχόμενο μιας σελίδας.";
-        const items = ["Τίτλος", "Παράγραφοι", "Λίστες"];
-        const signature = "— Tag-it-AR";
-        const ul = `<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
-        const ol = `<ol>${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+        const beforeText =
+          "Mini οδηγός HTML: Στόχος να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες. " +
+          "Τι θα δεις σήμερα: δομή, bullets, βήματα. " +
+          "Bullets: Δομή σελίδας, Καθαρό κείμενο, Έλεγχος πριν το quiz. " +
+          "Βήματα: 1 Διάβασε, 2 Σημείωσε, 3 Εφάρμοσε. " +
+          "Σημείωση: γραμμή Α / γραμμή Β.";
 
         const box = (label, inner) =>
-          `<div style="border:2px solid rgba(34,197,94,.45);border-radius:12px;padding:10px;margin:6px 0;background:rgba(34,197,94,.06);">
-            <div style="font-size:12px;font-weight:900;color:#14532d;margin-bottom:6px;">${label}</div>
-            ${inner}
-          </div>`;
+          `<div class="l2-box"><div class="l2-box__label">${label}</div>${inner}</div>`;
 
-        switch (tag) {
-          case "h1":
-            return box("Κύριος τίτλος (<h1>)", `<h1>${title}</h1>`)
-              + box("Υπόλοιπο", `<p>${p1}</p><p>${p2}</p>${ul}<hr><footer>${signature}</footer>`);
-          case "p":
-            return box("Παράγραφοι (<p>)", `<p>${p1}</p><p>${p2}</p>`)
-              + box("Λίστα + υπογραφή", `${ul}<hr><footer>${signature}</footer>`);
-          case "br":
-            return box("Αλλαγή γραμμής (<br>)", `${p1}<br>${p2}`)
-              + box("Λίστα + υπογραφή", `${ul}<hr><footer>${signature}</footer>`);
-          case "hr":
-            return box("Διαχωριστικό (<hr>)", `<p>${p1}</p><p>${p2}</p><hr><footer>${signature}</footer>`)
-              + box("Λίστα", `${ul}`);
-          case "ul":
-            return box("Λίστα κουκκίδων (<ul>)", ul)
-              + box("Κείμενο", `<p>${p1}</p><p>${p2}</p>`);
-          case "ol":
-            return box("Αριθμημένη λίστα (<ol>)", ol)
-              + box("Κείμενο", `<p>${p1}</p><p>${p2}</p>`);
-          case "li":
-            return box("Στοιχείο λίστας (<li>)", `<ul><li>${items[0]}</li></ul>`)
-              + `<div style="font-size:12px;color:#14532d;margin-top:6px;">
-                   Το <strong>&lt;li&gt;</strong> μπαίνει μέσα σε <strong>&lt;ul&gt;</strong> ή <strong>&lt;ol&gt;</strong> 🙂
-                 </div>`;
-          case "header":
-            return box("Κεφαλίδα (<header>)", `<header><h1>${title}</h1></header>`)
-              + box("Κύριο περιεχόμενο", `<p>${p1}</p><p>${p2}</p>${ul}<hr><footer>${signature}</footer>`);
-          case "main":
-            return box("Κύριο περιεχόμενο (<main>)", `<main><p>${p1}</p><p>${p2}</p>${ul}<hr><footer>${signature}</footer></main>`)
-              + box("Τίτλος", `<h1>${title}</h1>`);
-          case "footer":
-            return box("Υποσέλιδο (<footer>)", `<footer>${signature}</footer>`)
-              + box("Υπόλοιπο", `<h1>${title}</h1><p>${p1}</p><p>${p2}</p>${ul}<hr>`);
-          default:
-            return LEVELS.L2.defaultHtml;
-        }
+        const beforeHtml = box("Before (χωρίς δομή)", `<div class="l2-before">${beforeText}</div>`);
+
+        const focusClass = (t) => (t === tag ? "l2-focus" : "");
+
+        // ✅ AFTER: ίδιο περιεχόμενο, καθαρή δομή (μικρό για mobile)
+        const afterHtml = `
+          <h1 class="${focusClass("h1")}">Mini οδηγός HTML</h1>
+
+          <p class="${focusClass("p")}">
+            Στόχος: να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες.<br class="${focusClass("br")}">
+            Τι θα δεις σήμερα: δομή, bullets, βήματα.
+          </p>
+
+          <hr class="${focusClass("hr")}">
+
+          <p class="${focusClass("p")}">Bullets:</p>
+          <ul class="${focusClass("ul")}">
+            <li>Δομή σελίδας</li>
+            <li>Καθαρό κείμενο</li>
+            <li>Έλεγχος πριν το quiz</li>
+          </ul>
+
+          <p class="${focusClass("p")}">Βήματα:</p>
+          <ol class="${focusClass("ol")}">
+            <li>Διάβασε</li>
+            <li>Σημείωσε</li>
+            <li>Εφάρμοσε</li>
+          </ol>
+
+          <p class="${focusClass("p")}">
+            Σημείωση:<br class="${focusClass("br")}">
+            γραμμή Α<br class="${focusClass("br")}">
+            γραμμή Β
+          </p>
+        `.trim();
+
+        const afterBox = box(`After (δομή με <${tag}>)`, afterHtml);
+
+        return `${beforeHtml}${afterBox}`;
       },
     },
   };
@@ -274,18 +276,15 @@ document.addEventListener("DOMContentLoaded", () => {
     s.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
     s.setAttribute("mindar-image", `imageTargetSrc: ${mindFile}; autoStart: false;`);
 
+    // ✅ Δυναμικός αριθμός targets (L1=10, L2=6)
+    const n = currentLevel?.numTargets ?? 10;
+    const targets = Array.from({ length: n }, (_, i) =>
+      `<a-entity id="t${i}" mindar-image-target="targetIndex: ${i}"></a-entity>`
+    ).join("");
+
     s.innerHTML = `
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
-      <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
-      <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
-      <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
-      <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
-      <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
-      <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
-      <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
-      <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
-      <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
+      ${targets}
     `;
 
     arWrap.prepend(s);
@@ -301,13 +300,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function wireTargets() {
-    for (let i = 0; i < 10; i++) {
+    const n = currentLevel?.numTargets ?? 10;
+
+    for (let i = 0; i < n; i++) {
       const e = sceneEl.querySelector(`#t${i}`);
       if (!e) continue;
 
       e.addEventListener("targetFound", () => {
         clearReset();
         const tag = currentLevel.indexToTag[i];
+
+        if (!tag) return;
+
         setDetected(`<${tag}>`);
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
@@ -418,6 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     buildScene(currentLevel.mindFile);
 
+    // default content
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
@@ -443,7 +448,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", handleOrientationChange);
   window.addEventListener("orientationchange", handleOrientationChange);
 
-  // ✅ κάνε 1–2 checks στην αρχή (σε iOS αλλάζει το viewport μετά το load)
   enforcePortraitUI();
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
