@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentLabel = document.getElementById("contentLabel");
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
+  const codeWrap = document.getElementById("codeWrap"); // ✅ wrapper για hide/show
 
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
@@ -45,6 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function setStatus(msg) { statusText.textContent = msg; }
   function setDetected(msg) { detectedTag.textContent = msg; }
   function setHint(msg) { hintText.textContent = msg; }
+
+  function hideCode() { codeWrap?.classList.add("is-hidden"); }
+  function showCode() { codeWrap?.classList.remove("is-hidden"); }
 
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -92,6 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------
   // Level configurations
   // -----------------------
+  const LEVEL2_BEFORE_TEXT =
+    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.";
+
   const LEVELS = {
     L1: {
       key: "L1",
@@ -134,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mindFile: "./targets_level2.mind",
       contentLabel: "Before (χωρίς δομή):",
 
-      // ✅ σειρά όπως την έδωσες: h1, p, br, hr, ul, ol
+      // σειρά targets: h1, p, br, hr, ul, ol
       indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
 
       hints: {
@@ -146,49 +153,39 @@ document.addEventListener("DOMContentLoaded", () => {
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
 
+      // ✅ νέο BEFORE: 1 πρόταση, όπως ζήτησες
       defaultHtml: `
         <div class="l2-box">
           <div class="l2-box__label">Before (χωρίς δομή)</div>
-          <div class="l2-before">
-            Η πρώτη μου ιστοσελίδα!<br>
-            Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:<br>
-            Κείμενα<br>
-            Εικόνες και<br>
-            ήχους
-          </div>
+          <div class="l2-before">${LEVEL2_BEFORE_TEXT}</div>
         </div>
       `.trim(),
 
       apply(tag) {
+        // “After” χρησιμοποιεί το ίδιο νόημα αλλά σπάει σε δομή
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
         const sentenceB = "και περιέχει:";
-        const items = ["Κείμενα", "Εικόνες", "ήχους"];
+        const items = ["Κείμενα", "εικόνες", "ήχους"];
 
         const box = (label, inner) =>
           `<div class="l2-box"><div class="l2-box__label">${label}</div>${inner}</div>`;
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // BEFORE (σταθερό)
+        // BEFORE (σταθερό) — 1 πρόταση
         const beforeHtml = box(
           "Before (χωρίς δομή)",
-          `<div class="l2-before">
-            Η πρώτη μου ιστοσελίδα!<br>
-            Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:<br>
-            Κείμενα<br>
-            Εικόνες και<br>
-            ήχους
-          </div>`
+          `<div class="l2-before">${LEVEL2_BEFORE_TEXT}</div>`
         );
 
-        // AFTER: ενεργοποιείται μόνο το tag που σκανάρεις (και το highlight είναι ορατό)
+        // AFTER blocks
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        // hr: το βάζουμε μέσα σε wrapper για να μπορεί να γίνει highlight σωστά
+        // hr: μέσα σε wrapper για visible highlight
         const dividerBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
@@ -200,21 +197,21 @@ document.addEventListener("DOMContentLoaded", () => {
             ? `${sentenceA}<br>${sentenceB}`
             : `${sentenceA} ${sentenceB}`;
 
-        // highlight στο block όταν tag==p ή tag==br (το <br> μόνο του δεν γίνεται να "τονιστεί")
+        // highlight στο block όταν tag==p ή tag==br
         const sentenceClass = (tag === "p" || tag === "br") ? "l2-focus" : "";
         const sentenceBlock =
           tag === "p"
             ? `<p class="${sentenceClass}">${sentenceInner}</p>`
             : `<div class="${sentenceClass}">${sentenceInner}</div>`;
 
-        // list: ul/ol, αλλιώς σκέτη μορφή με <br>
+        // list: ul/ol, αλλιώς “σκέτη” εμφάνιση
         let listBlock = "";
         if (tag === "ul") {
           listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
         } else if (tag === "ol") {
           listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
         } else {
-          listBlock = `<div>${items[0]}<br>${items[1]} και<br>${items[2]}</div>`;
+          listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
         }
 
         const afterHtml = box(
@@ -255,6 +252,10 @@ document.addEventListener("DOMContentLoaded", () => {
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
+
+    // ✅ στο L2 κρύβουμε ξανά τον κώδικα στο reset
+    if (currentLevel.key === "L2") hideCode();
+    else showCode();
   }
 
   function stopAR() {
@@ -325,6 +326,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setDetected(`<${tag}>`);
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
+
+        // ✅ στο L2 δείχνουμε τον κώδικα μόνο αφού σκανάρει
+        if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
         rendered.innerHTML = html;
@@ -423,6 +427,10 @@ document.addEventListener("DOMContentLoaded", () => {
     helperText.textContent = currentLevel.helper;
 
     showScreen(scanScreen);
+
+    // ✅ στο Level 2 κρύβουμε τον κώδικα από πριν
+    if (currentLevel.key === "L2") hideCode();
+    else showCode();
 
     startBtn.disabled = true;
     stopBtn.disabled = true;
