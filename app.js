@@ -1,17 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Screens
   const homeScreen = document.getElementById("homeScreen");
   const scanScreen = document.getElementById("scanScreen");
   const quizScreen = document.getElementById("quizScreen");
 
+  // Top UI
   const topSubtitle = document.getElementById("topSubtitle");
 
+  // Home buttons
   const goL1 = document.getElementById("goL1");
   const goL2 = document.getElementById("goL2");
   const goQuiz = document.getElementById("goQuiz");
 
+  // Back buttons
   const backHomeFromScan = document.getElementById("backHomeFromScan");
   const backHomeFromQuiz = document.getElementById("backHomeFromQuiz");
 
+  // Scan UI
   const scanTitle = document.getElementById("scanTitle");
   const scanMini = document.getElementById("scanMini");
   const helperText = document.getElementById("helperText");
@@ -30,7 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
 
+  // Portrait overlay
   const overlay = document.getElementById("portraitOverlay");
+
+  // Quiz UI
   const quizBox = document.getElementById("quizBox");
 
   const RESET_DELAY_MS = 2000;
@@ -60,8 +68,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
 
   async function tryLockPortrait() {
-    try { if (screen?.orientation?.lock) { await screen.orientation.lock("portrait"); return true; } }
-    catch (_) {}
+    try {
+      if (screen?.orientation?.lock) {
+        await screen.orientation.lock("portrait");
+        return true;
+      }
+    } catch (_) {}
     return false;
   }
 
@@ -70,8 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!res.ok) throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
   }
 
-  // ✅ BEFORE as plain single-line text (no formatting)
-  const LEVEL2_BEFORE_TEXT =
+  // -----------------------
+  // Level configurations
+  // -----------------------
+  const LEVEL2_TEXT =
     "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.";
 
   const LEVELS = {
@@ -111,89 +125,106 @@ document.addEventListener("DOMContentLoaded", () => {
       key: "L2",
       numTargets: 6,
       title: "Level 2 — Δομή",
-      mini: "Πράσινες κάρτες: κάθε κάρτα επηρεάζει συγκεκριμένο κομμάτι του κειμένου",
-      helper: "Σκανάρισε κάρτες δομής και δες καθαρά τι αλλάζει στο κείμενο.",
+      mini: "Πράσινες κάρτες: εφαρμογή 1 κανόνα στο ίδιο κείμενο",
+      helper: "Κάθε κάρτα εφαρμόζει ένα tag στο ίδιο κείμενο (χωρίς before/after).",
       mindFile: "./targets_level2.mind",
-      contentLabel: "Before (χωρίς δομή):",
+      contentLabel: "Κείμενο (με επίδραση):",
 
-      // σειρά: h1, p, br, hr, ul, ol
+      // σειρά targets: <h1>, <p>, <br>, <hr>, <ul>, <ol>
       indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
 
       hints: {
         h1: "Κύριος τίτλος: ξεχωρίζει το θέμα της σελίδας.",
         p: "Παράγραφος: ομαδοποιεί προτάσεις και δίνει spacing.",
-        br: "Αλλαγή γραμμής μέσα στο ίδιο block.",
+        br: "Αλλαγή γραμμής: εδώ τη χρησιμοποιούμε σαν ‘λίστα’ με γραμμές.",
         hr: "Οπτικός διαχωριστής ενότητας.",
         ul: "Λίστα bullets (απλή απαρίθμηση).",
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
 
-      // ✅ plain single line (no box, no <br>, no tags)
-      defaultHtml: LEVEL2_BEFORE_TEXT,
+      // base: σκέτο κείμενο (μία γραμμή)
+      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
 
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
-        const sentenceB = "και περιέχει:";
+        const sentenceB = "και περιέχαει:";
         const items = ["Κείμενα", "εικόνες", "ήχους"];
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // ✅ Before stays plain (single line) even when scanning
-        const beforeHtml = `<div>${LEVEL2_BEFORE_TEXT}</div>`;
-
+        // 1) Title — μόνο όταν tag==h1 γίνεται <h1>
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        const dividerBlock =
+        // 2) Divider — μόνο όταν tag==hr
+        const hrBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
-            : `<div class="${focus("hr")}" style="height:10px"></div>`;
+            : ``;
 
-        const sentenceInner =
-          tag === "br"
-            ? `${sentenceA}<br>${sentenceB}`
-            : `${sentenceA} ${sentenceB}`;
-
-        const sentenceClass = (tag === "p" || tag === "br") ? "l2-focus" : "";
-        const sentenceBlock =
-          tag === "p"
-            ? `<p class="${sentenceClass}">${sentenceInner}</p>`
-            : `<div class="${sentenceClass}">${sentenceInner}</div>`;
-
+        // 3) Sentence — p affects only the explanatory sentence.
+        // br: κάνει “μορφή λίστας” (σπάει σε γραμμές μετά το ":" και βάζει items σε νέες γραμμές)
+        let sentenceBlock = "";
         let listBlock = "";
-        if (tag === "ul") {
-          listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
-        } else if (tag === "ol") {
-          listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+
+        if (tag === "br") {
+          // ✅ br as "line-list"
+          sentenceBlock = `
+            <div class="l2-focus">
+              ${sentenceA} ${sentenceB}<br>
+              ${items[0]}<br>
+              ${items[1]}<br>
+              ${items[2]}
+            </div>
+          `.trim();
+          // Όταν κάνουμε br-list, ΔΕΝ βάζουμε επιπλέον listBlock (για να μην διπλασιάζεται)
+          listBlock = "";
         } else {
-          listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
+          const sentenceClass = tag === "p" ? "l2-focus" : "";
+          sentenceBlock =
+            tag === "p"
+              ? `<p class="${sentenceClass}">${sentenceA} ${sentenceB}</p>`
+              : `<div class="${sentenceClass}">${sentenceA} ${sentenceB}</div>`;
+
+          // 4) List — ul/ol επηρεάζουν ΜΟΝΟ τη λίστα
+          if (tag === "ul") {
+            listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
+          } else if (tag === "ol") {
+            listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+          } else {
+            // default inline list
+            listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
+          }
         }
 
-        const afterHtml = `
+        return `
           <div>
             ${titleBlock}
-            ${dividerBlock}
+            ${hrBlock}
             ${sentenceBlock}
             ${listBlock}
           </div>
         `.trim();
-
-        return `${beforeHtml}${afterHtml}`;
       },
     },
   };
 
+  // -----------------------
   // AR engine
+  // -----------------------
   let currentLevel = null;
   let sceneEl = null;
   let arSystem = null;
   let isRunning = false;
   let resetTimer = null;
 
-  function clearReset() { if (resetTimer) clearTimeout(resetTimer); resetTimer = null; }
+  function clearReset() {
+    if (resetTimer) clearTimeout(resetTimer);
+    resetTimer = null;
+  }
 
   function scheduleReset() {
     clearReset();
@@ -210,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
 
+    // στο L2 κρύβουμε τον κώδικα από πριν/στο reset
     if (currentLevel.key === "L2") hideCode();
     else showCode();
   }
@@ -283,6 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
+        // στο L2 δείχνουμε κώδικα μόνο όταν σκανάρει
         if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
@@ -325,7 +358,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isRunning) return;
 
     enforcePortraitUI();
-    if (!isPortrait()) { setStatus("Γύρισε σε portrait για να ξεκινήσεις"); return; }
+    if (!isPortrait()) {
+      setStatus("Γύρισε σε portrait για να ξεκινήσεις");
+      return;
+    }
 
     await tryLockPortrait();
 
@@ -333,7 +369,10 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus("Έλεγχος αρχείων…");
       await checkFileReachable(currentLevel.mindFile);
 
-      if (!arSystem) { setStatus("Φόρτωση…"); return; }
+      if (!arSystem) {
+        setStatus("Φόρτωση…");
+        return;
+      }
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
 
       setStatus("Ζητάω άδεια κάμερας…");
@@ -377,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
+    // στο Level 2 κρύβουμε τον κώδικα από πριν
     if (currentLevel.key === "L2") hideCode();
     else showCode();
 
@@ -417,7 +457,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
+  // -----------------------
   // Quiz (mini)
+  // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
@@ -502,6 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
+  // Wiring UI
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
