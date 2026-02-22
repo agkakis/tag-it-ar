@@ -4,8 +4,6 @@ body {
   margin: 0;
   background: linear-gradient(180deg, #fff7e6 0%, #f2fbff 55%, #f7f4ef 100%);
   color: #111;
-
-  /* ✅ κόβει οριζόντια κύλιση σε όλη την εφαρμογή */
   overflow-x: hidden;
 }
 
@@ -22,10 +20,7 @@ body {
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(6px);
 }
-.orientation-overlay.is-visible {
-  display: flex;
-  pointer-events: auto;
-}
+.orientation-overlay.is-visible { display: flex; pointer-events: auto; }
 .orientation-card {
   width: min(520px, 92vw);
   background: white;
@@ -36,8 +31,7 @@ body {
   border: 1px solid rgba(0,0,0,0.10);
 }
 .rotate-icon {
-  width: 56px;
-  height: 56px;
+  width: 56px; height: 56px;
   margin: 0 auto 8px auto;
   border-radius: 16px;
   display: grid;
@@ -58,7 +52,8 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 12px; }
 .logo {
-  width: 42px; height: 42px; border-radius: 14px;
+  width: 42px; height: 42px;
+  border-radius: 14px;
   display: grid; place-items: center;
   font-weight: 900; color: white;
   background: linear-gradient(135deg, #3b82f6, #22c55e);
@@ -77,8 +72,6 @@ body {
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-
-  /* ✅ αποτρέπει overflow μέσα σε panels */
   overflow-x: hidden;
 }
 
@@ -119,12 +112,10 @@ body {
   margin-bottom: 10px;
 }
 
-/* Home menu */
+/* Home */
 .screen-title { margin: 4px 0 0 0; font-size: 18px; }
 .screen-subtitle { margin: 6px 0 12px 0; font-size: 13px; color: #444; }
-
 .menu-grid { display: grid; gap: 12px; }
-
 .menu-card {
   text-align: left;
   border: 1px solid rgba(0,0,0,0.10);
@@ -136,22 +127,15 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-
 .menu-title { font-weight: 900; font-size: 16px; }
 .menu-desc { margin-top: 4px; font-size: 13px; color: #333; }
-
 .menu-card.blue { border-top: 6px solid #3b82f6; }
 .menu-card.green { border-top: 6px solid #22c55e; }
 .menu-card.purple { border-top: 6px solid #a855f7; }
-
 .note { margin: 12px 0 0 0; font-size: 12px; color: #555; }
 
-/* Scan layout */
-.layout {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr;
-}
+/* Layout */
+.layout { display: grid; gap: 14px; grid-template-columns: 1fr; }
 @media (min-width: 900px) {
   .layout { grid-template-columns: 1fr 1fr; align-items: start; }
 }
@@ -175,10 +159,8 @@ body {
   width: 100% !important;
   height: 100% !important;
 }
-
 .ar-container a-scene video,
 .ar-container a-scene canvas { pointer-events: none !important; }
-
 .ar-container a-scene video {
   position: absolute !important;
   top: 0; left: 0;
@@ -234,11 +216,7 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.btn.small {
-  min-width: auto;
-  padding: 8px 10px;
-  font-size: 12px;
-}
+.btn.small { min-width: auto; padding: 8px 10px; font-size: 12px; }
 .btn-primary {
   background: linear-gradient(135deg, #3b82f6, #22c55e);
   color: white;
@@ -251,55 +229,84 @@ body {
 .result-block { margin-top: 12px; }
 .label { margin: 0 0 6px 0; font-size: 13px; color: #374151; }
 
-/* ✅ εδώ είναι το κλειδί για το Level 2 overflow */
 .rendered {
   font-size: 22px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,0.10);
   background: linear-gradient(180deg, #ffffff, #fafafa);
-
   width: 100%;
   box-sizing: border-box;
-
-  overflow-x: hidden;              /* κόβει side overflow */
-  overflow-y: visible;
-
-  overflow-wrap: anywhere;         /* σπάει μεγάλες “λέξεις/strings” */
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
+.rendered * { box-sizing: border-box; max-width: 100%; }
 
-/* όλα τα παιδιά να μην ξεφεύγουν */
-.rendered * {
-  box-sizing: border-box;
-  max-width: 100%;
+/* Level 2 typography */
+.rendered.level2 { font-size: 17px; line-height: 1.35; }
+.rendered.level2 h1 { font-size: 20px; margin: 6px 0 10px 0; }
+.rendered.level2 p { margin: 8px 0; }
+.rendered.level2 ul, .rendered.level2 ol { margin: 8px 0; padding-left: 18px; }
+.rendered.level2 li { margin: 4px 0; }
+.rendered.level2 hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
+
+.hl {
+  outline: 3px solid rgba(34,197,94,0.55);
+  background: rgba(34,197,94,0.10);
+  border-radius: 10px;
+  padding: 6px;
+}
+.hl-inline {
+  outline: 3px solid rgba(34,197,94,0.55);
+  background: rgba(34,197,94,0.12);
+  border-radius: 8px;
+  padding: 2px 6px;
 }
 
-/* ✅ “μαζεύουμε” τα defaults που συχνά προκαλούν overflow */
-.rendered h1, .rendered p { margin: 8px 0; }
-.rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
-.rendered li { margin: 4px 0; }
-.rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
-
-/* Level 2 demo boxes */
-.l2-box {
-  width: 100%;
-  border: 2px solid rgba(34,197,94,.45);
-  border-radius: 12px;
-  padding: 10px;
-  margin: 8px 0;
-  background: rgba(34,197,94,.06);
-}
-.l2-box__label {
+.l2-banner {
   font-size: 12px;
   font-weight: 900;
   color: #14532d;
-  margin-bottom: 6px;
+  background: rgba(34,197,94,0.10);
+  border: 1px solid rgba(34,197,94,0.22);
+  padding: 8px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
-.l2-note {
+
+/* Quiz HUD */
+.quiz-hud {
+  margin: 8px 0 10px 0;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(168,85,247,0.08);
+  padding: 10px 12px;
+}
+.quiz-hud-top {
+  display: grid;
+  gap: 6px;
+}
+.quiz-q {
+  font-weight: 900;
+  font-size: 14px;
+  color: #2b1248;
+}
+.quiz-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
   font-size: 12px;
-  color: #14532d;
+  color: #2b1248;
+}
+.quiz-feedback {
   margin-top: 8px;
+  font-size: 13px;
+  color: #2b1248;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(168,85,247,0.18);
+  padding: 8px 10px;
+  border-radius: 12px;
 }
 
 .code {
@@ -320,32 +327,4 @@ body {
   border: 1px solid rgba(34,197,94,0.18);
   color: #14532d;
   font-size: 13px;
-}
-
-/* Quiz */
-.quiz-box { margin-top: 10px; }
-.quiz-q { font-weight: 900; font-size: 15px; margin-bottom: 10px; }
-.quiz-answers { display: grid; gap: 10px; }
-.answer-btn {
-  text-align: left;
-  border: 1px solid rgba(0,0,0,0.12);
-  border-radius: 14px;
-  padding: 12px;
-  background: #fff;
-  cursor: pointer;
-  font-weight: 800;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.answer-btn.correct { border-color: rgba(34,197,94,0.45); background: rgba(34,197,94,0.10); }
-.answer-btn.wrong { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.10); }
-.quiz-footer {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: #333;
 }
