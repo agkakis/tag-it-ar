@@ -1,140 +1,351 @@
-<!doctype html>
-<html lang="el">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tag-it-AR</title>
-  <link rel="stylesheet" href="style.css" />
+:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
-  <!-- A-Frame + MindAR -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-</head>
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #fff7e6 0%, #f2fbff 55%, #f7f4ef 100%);
+  color: #111;
 
-<body>
-  <!-- Portrait overlay -->
-  <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
-    <div class="orientation-card">
-      <div class="rotate-icon">↻</div>
-      <h2>Γύρισε τη συσκευή</h2>
-      <p>Για καλύτερη εμπειρία, χρησιμοποίησε το Tag-it-AR σε <strong>portrait</strong> θέση.</p>
-      <p class="small">Μόλις γυρίσεις σε portrait, συνεχίζει αυτόματα.</p>
-    </div>
-  </div>
+  /* ✅ κόβει οριζόντια κύλιση σε όλη την εφαρμογή */
+  overflow-x: hidden;
+}
 
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">T</div>
-      <div>
-        <h1>Tag-it-AR</h1>
-        <p id="topSubtitle">Μάθε HTML με κάρτες AR.</p>
-      </div>
-    </div>
-  </header>
+/* Portrait overlay */
+.orientation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: none;
+  pointer-events: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+}
+.orientation-overlay.is-visible {
+  display: flex;
+  pointer-events: auto;
+}
+.orientation-card {
+  width: min(520px, 92vw);
+  background: white;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.10);
+}
+.rotate-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 8px auto;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+}
+.orientation-card h2 { margin: 6px 0; font-size: 18px; }
+.orientation-card p { margin: 6px 0; font-size: 14px; color: #222; }
+.orientation-card p.small { font-size: 12px; color: #555; }
 
-  <main class="shell">
-    <!-- HOME -->
-    <section id="homeScreen" class="screen is-active">
-      <div class="panel">
-        <h2 class="screen-title">Διάλεξε λειτουργία</h2>
-        <p class="screen-subtitle">Levels & Quiz με σκανάρισμα καρτών.</p>
+.topbar {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  background: white;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 42px; height: 42px; border-radius: 14px;
+  display: grid; place-items: center;
+  font-weight: 900; color: white;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.10);
+}
+.topbar h1 { margin: 0; font-size: 18px; }
+.topbar p { margin: 2px 0 0 0; color: #333; font-size: 13px; }
 
-        <div class="menu-grid">
-          <button id="goL1" class="menu-card blue" type="button">
-            <div class="menu-title">Level 1</div>
-            <div class="menu-desc">Μορφοποίηση (μπλε κάρτες)</div>
-          </button>
+.shell { padding: 14px; }
+.screen { display: none; }
+.screen.is-active { display: block; }
 
-          <button id="goL2" class="menu-card green" type="button">
-            <div class="menu-title">Level 2</div>
-            <div class="menu-desc">Δομή (πράσινες κάρτες)</div>
-          </button>
+.panel {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 
-          <button id="goQuizL1" class="menu-card purple" type="button">
-            <div class="menu-title">Quiz (Μπλε)</div>
-            <div class="menu-desc">Απάντηση με σκανάρισμα μπλε κάρτας</div>
-          </button>
+  /* ✅ αποτρέπει overflow μέσα σε panels */
+  overflow-x: hidden;
+}
 
-          <button id="goQuizL2" class="menu-card purple" type="button">
-            <div class="menu-title">Quiz (Πράσινες)</div>
-            <div class="menu-desc">Απάντηση με σκανάρισμα πράσινης κάρτας</div>
-          </button>
-        </div>
+.panel-scan { border-top: 6px solid #3b82f6; }
+.panel-result { border-top: 6px solid #22c55e; }
 
-        <p class="note">
-          Για κάμερα απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
-        </p>
-      </div>
-    </section>
+.panel-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.panel-title h2 { margin: 0; font-size: 16px; }
+.mini { margin: 4px 0 0 0; font-size: 12px; color: #444; }
 
-    <!-- SCAN/QUIZ -->
-    <section id="scanScreen" class="screen">
-      <div class="layout">
-        <section class="panel panel-scan">
-          <div class="panel-title">
-            <div>
-              <h2 id="scanTitle">—</h2>
-              <p class="mini" id="scanMini">—</p>
-            </div>
-            <button id="backHome" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
-          </div>
+.badge {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59,130,246,0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(59,130,246,0.25);
+}
+.badge-green {
+  background: rgba(34,197,94,0.12);
+  color: #15803d;
+  border: 1px solid rgba(34,197,94,0.25);
+}
 
-          <div class="helper" id="helperText">—</div>
+.helper {
+  font-size: 13px;
+  color: #1f2937;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.18);
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
 
-          <!-- Quiz HUD -->
-          <div id="quizHud" class="quiz-hud" hidden>
-            <div class="quiz-q" id="quizQuestion">—</div>
-            <div class="quiz-stats">
-              <span><strong>Σκορ:</strong> <span id="quizScore">0</span></span>
-              <span><strong>Πρόοδος:</strong> <span id="quizProgress">0/0</span></span>
-            </div>
-            <div class="quiz-feedback" id="quizFeedback">Σκάναρε την σωστή κάρτα.</div>
-          </div>
+/* Home menu */
+.screen-title { margin: 4px 0 0 0; font-size: 18px; }
+.screen-subtitle { margin: 6px 0 12px 0; font-size: 13px; color: #444; }
 
-          <div class="ar-container" id="arWrap">
-            <!-- a-scene inject από app.js -->
-            <div class="reticle" aria-hidden="true">
-              <div class="reticle-ring"></div>
-              <div class="reticle-dot"></div>
-            </div>
-          </div>
+.menu-grid { display: grid; gap: 12px; }
 
-          <div class="status">
-            <div><strong>Κατάσταση:</strong> <span id="statusText">—</span></div>
-            <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
-            <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
-          </div>
+.menu-card {
+  text-align: left;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  background: white;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 
-          <div class="buttons">
-            <button id="startBtn" class="btn btn-primary" type="button" disabled>Έναρξη</button>
-            <button id="stopBtn" class="btn btn-secondary" type="button" disabled>Διακοπή</button>
-          </div>
-        </section>
+.menu-title { font-weight: 900; font-size: 16px; }
+.menu-desc { margin-top: 4px; font-size: 13px; color: #333; }
 
-        <section class="panel panel-result">
-          <div class="panel-title">
-            <h2>Αποτέλεσμα</h2>
-            <span class="badge badge-green">HTML</span>
-          </div>
+.menu-card.blue { border-top: 6px solid #3b82f6; }
+.menu-card.green { border-top: 6px solid #22c55e; }
+.menu-card.purple { border-top: 6px solid #a855f7; }
 
-          <div class="result-block">
-            <p class="label" id="contentLabel">—</p>
-            <div id="rendered" class="rendered">—</div>
-          </div>
+.note { margin: 12px 0 0 0; font-size: 12px; color: #555; }
 
-          <div class="result-block">
-            <p class="label">Κώδικας HTML:</p>
-            <pre class="code"><code id="codeBox">—</code></pre>
-          </div>
+/* Scan layout */
+.layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 1fr 1fr; align-items: start; }
+}
 
-          <div class="tip">
-            Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το περιεχόμενο επιστρέφει στο αρχικό.
-          </div>
-        </section>
-      </div>
-    </section>
-  </main>
+/* AR container */
+.ar-container {
+  width: 100%;
+  height: 260px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+  border: 2px dashed rgba(0,0,0,0.18);
+  isolation: isolate;
+}
+@media (max-width: 380px) { .ar-container { height: 290px; } }
 
-  <script src="app.js"></script>
-</body>
-</html>
+.ar-container a-scene {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ar-container a-scene video,
+.ar-container a-scene canvas { pointer-events: none !important; }
+
+.ar-container a-scene video {
+  position: absolute !important;
+  top: 0; left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  z-index: 1 !important;
+  background: #000;
+}
+.ar-container a-scene canvas {
+  position: absolute !important;
+  top: 0; left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 2 !important;
+  background: transparent !important;
+}
+
+.reticle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 20;
+  pointer-events: none;
+}
+.reticle-ring {
+  width: 120px; height: 120px;
+  border-radius: 999px;
+  border: 4px solid rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 8px rgba(59,130,246,0.18);
+}
+.reticle-dot {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 0 0 6px rgba(34,197,94,0.20);
+}
+
+.status { margin: 10px 0; display: grid; gap: 6px; font-size: 13px; }
+.buttons { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 14px;
+  min-width: 120px;
+  background: #fff;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn.small {
+  min-width: auto;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+  color: white;
+  border: none;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
+}
+.btn-secondary { background: #fff; color: #111; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.result-block { margin-top: 12px; }
+.label { margin: 0 0 6px 0; font-size: 13px; color: #374151; }
+
+/* ✅ εδώ είναι το κλειδί για το Level 2 overflow */
+.rendered {
+  font-size: 22px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: linear-gradient(180deg, #ffffff, #fafafa);
+
+  width: 100%;
+  box-sizing: border-box;
+
+  overflow-x: hidden;              /* κόβει side overflow */
+  overflow-y: visible;
+
+  overflow-wrap: anywhere;         /* σπάει μεγάλες “λέξεις/strings” */
+  word-break: break-word;
+}
+
+/* όλα τα παιδιά να μην ξεφεύγουν */
+.rendered * {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* ✅ “μαζεύουμε” τα defaults που συχνά προκαλούν overflow */
+.rendered h1, .rendered p { margin: 8px 0; }
+.rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
+.rendered li { margin: 4px 0; }
+.rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
+
+/* Level 2 demo boxes */
+.l2-box {
+  width: 100%;
+  border: 2px solid rgba(34,197,94,.45);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 8px 0;
+  background: rgba(34,197,94,.06);
+}
+.l2-box__label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #14532d;
+  margin-bottom: 6px;
+}
+.l2-note {
+  font-size: 12px;
+  color: #14532d;
+  margin-top: 8px;
+}
+
+.code {
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #0b1020;
+  color: #e7e7e7;
+  overflow: auto;
+}
+
+.tip {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(34,197,94,0.10);
+  border: 1px solid rgba(34,197,94,0.18);
+  color: #14532d;
+  font-size: 13px;
+}
+
+/* Quiz */
+.quiz-box { margin-top: 10px; }
+.quiz-q { font-weight: 900; font-size: 15px; margin-bottom: 10px; }
+.quiz-answers { display: grid; gap: 10px; }
+.answer-btn {
+  text-align: left;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.answer-btn.correct { border-color: rgba(34,197,94,0.45); background: rgba(34,197,94,0.10); }
+.answer-btn.wrong { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.10); }
+.quiz-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #333;
+}
