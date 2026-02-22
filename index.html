@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Tag-it-AR</title>
-
   <link rel="stylesheet" href="style.css" />
 
   <!-- A-Frame + MindAR -->
@@ -13,7 +12,7 @@
 </head>
 
 <body>
-  <!-- Portrait-only overlay -->
+  <!-- Portrait overlay -->
   <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
     <div class="orientation-card">
       <div class="rotate-icon">↻</div>
@@ -34,41 +33,41 @@
   </header>
 
   <main class="shell">
-    <!-- HOME SCREEN -->
+    <!-- HOME -->
     <section id="homeScreen" class="screen is-active">
       <div class="panel">
         <h2 class="screen-title">Διάλεξε λειτουργία</h2>
-        <p class="screen-subtitle">Σάρωσε 1 κάρτα κάθε φορά. Το Quiz απαντιέται μόνο με σκανάρισμα.</p>
+        <p class="screen-subtitle">Levels & Quiz με σκανάρισμα καρτών.</p>
 
         <div class="menu-grid">
           <button id="goL1" class="menu-card blue" type="button">
             <div class="menu-title">Level 1</div>
-            <div class="menu-desc">Μορφοποίηση κειμένου (μπλε κάρτες)</div>
+            <div class="menu-desc">Μορφοποίηση (μπλε κάρτες)</div>
           </button>
 
           <button id="goL2" class="menu-card green" type="button">
             <div class="menu-title">Level 2</div>
-            <div class="menu-desc">Δομή άρθρου (πράσινες κάρτες)</div>
+            <div class="menu-desc">Δομή (πράσινες κάρτες)</div>
           </button>
 
           <button id="goQuizL1" class="menu-card purple" type="button">
             <div class="menu-title">Quiz (Μπλε)</div>
-            <div class="menu-desc">Απάντησε σκανάροντας σωστή κάρτα μορφοποίησης</div>
+            <div class="menu-desc">Απάντηση με σκανάρισμα μπλε κάρτας</div>
           </button>
 
           <button id="goQuizL2" class="menu-card purple" type="button">
             <div class="menu-title">Quiz (Πράσινες)</div>
-            <div class="menu-desc">Απάντησε σκανάροντας σωστή δομική κάρτα</div>
+            <div class="menu-desc">Απάντηση με σκανάρισμα πράσινης κάρτας</div>
           </button>
         </div>
 
         <p class="note">
-          Για χρήση κάμερας απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
+          Για κάμερα απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
         </p>
       </div>
     </section>
 
-    <!-- SCAN / QUIZ SCREEN -->
+    <!-- SCAN/QUIZ -->
     <section id="scanScreen" class="screen">
       <div class="layout">
         <section class="panel panel-scan">
@@ -77,19 +76,17 @@
               <h2 id="scanTitle">—</h2>
               <p class="mini" id="scanMini">—</p>
             </div>
-            <button id="backHomeFromScan" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
+            <button id="backHome" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
           </div>
 
           <div class="helper" id="helperText">—</div>
 
-          <!-- Quiz HUD (εμφανίζεται μόνο σε quiz mode) -->
+          <!-- Quiz HUD -->
           <div id="quizHud" class="quiz-hud" hidden>
-            <div class="quiz-hud-top">
-              <div class="quiz-q" id="quizQuestion">—</div>
-              <div class="quiz-stats">
-                <span><strong>Σκορ:</strong> <span id="quizScore">0</span></span>
-                <span><strong>Πρόοδος:</strong> <span id="quizProgress">0/0</span></span>
-              </div>
+            <div class="quiz-q" id="quizQuestion">—</div>
+            <div class="quiz-stats">
+              <span><strong>Σκορ:</strong> <span id="quizScore">0</span></span>
+              <span><strong>Πρόοδος:</strong> <span id="quizProgress">0/0</span></span>
             </div>
             <div class="quiz-feedback" id="quizFeedback">Σκάναρε την σωστή κάρτα.</div>
           </div>
