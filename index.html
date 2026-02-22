@@ -7,13 +7,11 @@
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- A-Frame + MindAR (A-Frame build) -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 
 <body>
-  <!-- Portrait-only overlay -->
   <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
     <div class="orientation-card">
       <div class="rotate-icon">↻</div>
@@ -28,13 +26,12 @@
       <div class="logo">T</div>
       <div>
         <h1>Tag-it-AR</h1>
-        <p id="topSubtitle">Μάθε HTML με κάρτες AR...</p>
+        <p id="topSubtitle">Μάθε HTML με κάρτες AR.</p>
       </div>
     </div>
   </header>
 
   <main class="shell">
-    <!-- HOME SCREEN -->
     <section id="homeScreen" class="screen is-active">
       <div class="panel">
         <h2 class="screen-title">Διάλεξε επίπεδο</h2>
@@ -63,7 +60,6 @@
       </div>
     </section>
 
-    <!-- SCAN SCREEN -->
     <section id="scanScreen" class="screen">
       <div class="layout">
         <section class="panel panel-scan">
@@ -80,7 +76,6 @@
           </div>
 
           <div class="ar-container" id="arWrap">
-            <!-- a-scene inserted by app.js -->
             <div class="reticle" aria-hidden="true">
               <div class="reticle-ring"></div>
               <div class="reticle-dot"></div>
@@ -112,7 +107,6 @@
 
           <div class="result-block">
             <p class="label">Κώδικας HTML:</p>
-            <!-- ✅ wrapper για να το κρύβουμε στο Level 2 μέχρι να σκανάρει -->
             <pre id="codeWrap" class="code"><code id="codeBox">—</code></pre>
           </div>
 
@@ -123,7 +117,6 @@
       </div>
     </section>
 
-    <!-- QUIZ SCREEN -->
     <section id="quizScreen" class="screen">
       <div class="panel">
         <div class="panel-title">
