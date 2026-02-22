@@ -55,7 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
     which.classList.add("is-active");
   }
 
-  // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
     return window.innerHeight >= window.innerWidth;
   }
@@ -130,87 +129,121 @@ document.addEventListener("DOMContentLoaded", () => {
       key: "L2",
       numTargets: 6,
       title: "Level 2 — Δομή",
-      mini: "Πράσινες κάρτες: από “Before” σε “After” (δομή)",
-      helper: "Σκανάρισε κάρτες δομής και δες καθαρά Before → After στο ίδιο περιεχόμενο.",
+      mini: "Πράσινες κάρτες: κάθε κάρτα επηρεάζει συγκεκριμένο κομμάτι του κειμένου",
+      helper: "Σκανάρισε κάρτες δομής και δες καθαρά τι αλλάζει στο κείμενο.",
       mindFile: "./targets_level2.mind",
       contentLabel: "Before (χωρίς δομή):",
 
-      // ✅ BEFORE: 1 γραμμή, μικρό για mobile
+      // ✅ σειρά όπως την έδωσες: h1, p, br, hr, ul, ol
+      indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
+
+      hints: {
+        h1: "Κύριος τίτλος: ξεχωρίζει το θέμα της σελίδας.",
+        p: "Παράγραφος: ομαδοποιεί προτάσεις και δίνει spacing.",
+        br: "Αλλαγή γραμμής μέσα στο ίδιο block.",
+        hr: "Οπτικός διαχωριστής ενότητας.",
+        ul: "Λίστα bullets (απλή απαρίθμηση).",
+        ol: "Αριθμημένη λίστα (σειρά/βήματα).",
+      },
+
+      // ✅ Before (όπως το έδωσες), compact για κινητό
       defaultHtml: `
         <div class="l2-box">
           <div class="l2-box__label">Before (χωρίς δομή)</div>
           <div class="l2-before">
-            Mini οδηγός HTML: Στόχος να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες.
-            Τι θα δεις σήμερα: δομή, bullets, βήματα.
-            Bullets: Δομή σελίδας, Καθαρό κείμενο, Έλεγχος πριν το quiz.
-            Βήματα: 1 Διάβασε, 2 Σημείωσε, 3 Εφάρμοσε.
-            Σημείωση: γραμμή Α / γραμμή Β.
+            Η πρώτη μου ιστοσελίδα!<br>
+            Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:<br>
+            Κείμενα<br>
+            Εικόνες και<br>
+            ήχους
           </div>
         </div>
       `.trim(),
 
-      // Τα 6 tags σου (αν τα .mind σου είναι 6 targets, αυτό είναι το σωστό mapping)
-      indexToTag: { 0: "h1", 1: "p", 2: "ul", 3: "ol", 4: "br", 5: "hr" },
-
-      hints: {
-        h1: "Κύριος τίτλος (μία φορά ανά σελίδα).",
-        p: "Παράγραφος: καθαρίζει/ομαδοποιεί προτάσεις.",
-        ul: "Λίστα bullets (χωρίς σειρά).",
-        ol: "Λίστα βημάτων (με σειρά).",
-        br: "Αλλαγή γραμμής μέσα στο ίδιο block.",
-        hr: "Οπτικός διαχωριστής ενότητας.",
-      },
-
       apply(tag) {
-        const beforeText =
-          "Mini οδηγός HTML: Στόχος να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες. " +
-          "Τι θα δεις σήμερα: δομή, bullets, βήματα. " +
-          "Bullets: Δομή σελίδας, Καθαρό κείμενο, Έλεγχος πριν το quiz. " +
-          "Βήματα: 1 Διάβασε, 2 Σημείωσε, 3 Εφάρμοσε. " +
-          "Σημείωση: γραμμή Α / γραμμή Β.";
+        const title = "Η πρώτη μου ιστοσελίδα!";
+        const sentence = "Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:";
+        const items = ["Κείμενα", "Εικόνες", "ήχους"];
 
         const box = (label, inner) =>
           `<div class="l2-box"><div class="l2-box__label">${label}</div>${inner}</div>`;
 
-        const beforeHtml = box("Before (χωρίς δομή)", `<div class="l2-before">${beforeText}</div>`);
+        const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        const focusClass = (t) => (t === tag ? "l2-focus" : "");
+        // BEFORE: πάντα ίδιο
+        const beforeHtml = box(
+          "Before (χωρίς δομή)",
+          `<div class="l2-before">
+            Η πρώτη μου ιστοσελίδα!<br>
+            Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:<br>
+            Κείμενα<br>
+            Εικόνες και<br>
+            ήχους
+          </div>`
+        );
 
-        // ✅ AFTER: ίδιο περιεχόμενο, καθαρή δομή (μικρό για mobile)
-        const afterHtml = `
-          <h1 class="${focusClass("h1")}">Mini οδηγός HTML</h1>
+        // AFTER: συνθέτουμε το ίδιο περιεχόμενο, αλλά κάθε tag “ενεργοποιεί”
+        // μόνο το δικό του μέρος (και το τονίζουμε με l2-focus).
 
-          <p class="${focusClass("p")}">
-            Στόχος: να οργανώνεις κείμενο σε τίτλο, παραγράφους και λίστες.<br class="${focusClass("br")}">
-            Τι θα δεις σήμερα: δομή, bullets, βήματα.
-          </p>
+        // 1) Title: μόνο όταν tag==h1 γίνεται πραγματικό <h1>
+        const titleHtml =
+          tag === "h1"
+            ? `<h1 class="${focus("h1")}">${title}</h1>`
+            : `<div class="${focus("h1")}">${title}</div>`;
 
-          <hr class="${focusClass("hr")}">
+        // 2) Divider: μόνο όταν tag==hr βάζουμε <hr> αμέσως μετά τον τίτλο
+        const hrHtml =
+          tag === "hr"
+            ? `<hr class="${focus("hr")}">`
+            : `<div class="${focus("hr")}" style="height:10px"></div>`;
 
-          <p class="${focusClass("p")}">Bullets:</p>
-          <ul class="${focusClass("ul")}">
-            <li>Δομή σελίδας</li>
-            <li>Καθαρό κείμενο</li>
-            <li>Έλεγχος πριν το quiz</li>
-          </ul>
+        // 3) Sentence: για p/br
+        // - p: η πρόταση γίνεται <p>
+        // - br: σπάει σε 2 γραμμές μέσα στο ίδιο block (χωρίς να χρειάζεται p)
+        const sentenceInner =
+          tag === "br"
+            ? "Αυτή είναι η πρώτη μου ιστοσελίδα<br>και περιέχει:"
+            : sentence;
 
-          <p class="${focusClass("p")}">Βήματα:</p>
-          <ol class="${focusClass("ol")}">
-            <li>Διάβασε</li>
-            <li>Σημείωσε</li>
-            <li>Εφάρμοσε</li>
-          </ol>
+        const sentenceHtml =
+          tag === "p"
+            ? `<p class="${focus("p")}">${sentenceInner}</p>`
+            : `<div class="${focus("p")}">${sentenceInner}</div>`;
 
-          <p class="${focusClass("p")}">
-            Σημείωση:<br class="${focusClass("br")}">
-            γραμμή Α<br class="${focusClass("br")}">
-            γραμμή Β
-          </p>
-        `.trim();
+        // 4) List: για ul/ol
+        // - ul: bullets
+        // - ol: αριθμημένη
+        // αλλιώς: “σκέτη” εμφάνιση με <br> ώστε να φαίνεται διαφορά
+        let listHtml = "";
+        if (tag === "ul") {
+          listHtml = `
+            <ul class="${focus("ul")}">
+              ${items.map(x => `<li>${x}</li>`).join("")}
+            </ul>
+          `.trim();
+        } else if (tag === "ol") {
+          listHtml = `
+            <ol class="${focus("ol")}">
+              ${items.map(x => `<li>${x}</li>`).join("")}
+            </ol>
+          `.trim();
+        } else {
+          // default list view (χωρίς ul/ol) για να “γράφει” το before→after
+          listHtml = `
+            <div>
+              ${items[0]}<br>
+              ${items[1]} και<br>
+              ${items[2]}
+            </div>
+          `.trim();
+        }
 
-        const afterBox = box(`After (δομή με <${tag}>)`, afterHtml);
+        const afterHtml = box(
+          `After (με <${tag}>)`,
+          `${titleHtml}${hrHtml}${sentenceHtml}${listHtml}`
+        );
 
-        return `${beforeHtml}${afterBox}`;
+        return `${beforeHtml}${afterHtml}`;
       },
     },
   };
@@ -276,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
     s.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
     s.setAttribute("mindar-image", `imageTargetSrc: ${mindFile}; autoStart: false;`);
 
-    // ✅ Δυναμικός αριθμός targets (L1=10, L2=6)
     const n = currentLevel?.numTargets ?? 10;
     const targets = Array.from({ length: n }, (_, i) =>
       `<a-entity id="t${i}" mindar-image-target="targetIndex: ${i}"></a-entity>`
@@ -309,7 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
       e.addEventListener("targetFound", () => {
         clearReset();
         const tag = currentLevel.indexToTag[i];
-
         if (!tag) return;
 
         setDetected(`<${tag}>`);
@@ -422,7 +453,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     buildScene(currentLevel.mindFile);
 
-    // default content
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
@@ -453,7 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz
+  // Quiz (κρατάμε το υπάρχον απλό quiz)
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
