@@ -7,11 +7,13 @@
 
   <link rel="stylesheet" href="style.css" />
 
+  <!-- A-Frame + MindAR (A-Frame build) -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 
 <body>
+  <!-- Portrait-only overlay -->
   <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
     <div class="orientation-card">
       <div class="rotate-icon">↻</div>
@@ -32,6 +34,7 @@
   </header>
 
   <main class="shell">
+    <!-- HOME -->
     <section id="homeScreen" class="screen is-active">
       <div class="panel">
         <h2 class="screen-title">Διάλεξε επίπεδο</h2>
@@ -60,6 +63,7 @@
       </div>
     </section>
 
+    <!-- SCAN -->
     <section id="scanScreen" class="screen">
       <div class="layout">
         <section class="panel panel-scan">
@@ -76,6 +80,7 @@
           </div>
 
           <div class="ar-container" id="arWrap">
+            <!-- a-scene inserted by app.js -->
             <div class="reticle" aria-hidden="true">
               <div class="reticle-ring"></div>
               <div class="reticle-dot"></div>
@@ -101,7 +106,7 @@
           </div>
 
           <div class="result-block">
-            <p class="label" id="contentLabel">Κείμενο (απόδοση):</p>
+            <p class="label" id="contentLabel">Κείμενο:</p>
             <div id="rendered" class="rendered">—</div>
           </div>
 
@@ -117,6 +122,7 @@
       </div>
     </section>
 
+    <!-- QUIZ -->
     <section id="quizScreen" class="screen">
       <div class="panel">
         <div class="panel-title">
