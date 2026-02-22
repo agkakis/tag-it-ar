@@ -1,22 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Screens
   const homeScreen = document.getElementById("homeScreen");
   const scanScreen = document.getElementById("scanScreen");
   const quizScreen = document.getElementById("quizScreen");
 
-  // Top UI
   const topSubtitle = document.getElementById("topSubtitle");
 
-  // Home buttons
   const goL1 = document.getElementById("goL1");
   const goL2 = document.getElementById("goL2");
   const goQuiz = document.getElementById("goQuiz");
 
-  // Back buttons
   const backHomeFromScan = document.getElementById("backHomeFromScan");
   const backHomeFromQuiz = document.getElementById("backHomeFromQuiz");
 
-  // Scan UI
   const scanTitle = document.getElementById("scanTitle");
   const scanMini = document.getElementById("scanMini");
   const helperText = document.getElementById("helperText");
@@ -30,15 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentLabel = document.getElementById("contentLabel");
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
-  const codeWrap = document.getElementById("codeWrap"); // ✅ wrapper για hide/show
+  const codeWrap = document.getElementById("codeWrap");
 
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
 
-  // Portrait overlay
   const overlay = document.getElementById("portraitOverlay");
-
-  // Quiz UI
   const quizBox = document.getElementById("quizBox");
 
   const RESET_DELAY_MS = 2000;
@@ -63,28 +55,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.innerHeight >= window.innerWidth;
   }
 
-  function showOverlay() {
-    overlay.classList.add("is-visible");
-    overlay.setAttribute("aria-hidden", "false");
-  }
-
-  function hideOverlay() {
-    overlay.classList.remove("is-visible");
-    overlay.setAttribute("aria-hidden", "true");
-  }
-
-  function enforcePortraitUI() {
-    if (isPortrait()) hideOverlay();
-    else showOverlay();
-  }
+  function showOverlay() { overlay.classList.add("is-visible"); }
+  function hideOverlay() { overlay.classList.remove("is-visible"); }
+  function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
 
   async function tryLockPortrait() {
-    try {
-      if (screen?.orientation?.lock) {
-        await screen.orientation.lock("portrait");
-        return true;
-      }
-    } catch (_) {}
+    try { if (screen?.orientation?.lock) { await screen.orientation.lock("portrait"); return true; } }
+    catch (_) {}
     return false;
   }
 
@@ -93,9 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!res.ok) throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
   }
 
-  // -----------------------
-  // Level configurations
-  // -----------------------
+  // ✅ BEFORE as plain single-line text (no formatting)
   const LEVEL2_BEFORE_TEXT =
     "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.";
 
@@ -141,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mindFile: "./targets_level2.mind",
       contentLabel: "Before (χωρίς δομή):",
 
-      // σειρά targets: h1, p, br, hr, ul, ol
+      // σειρά: h1, p, br, hr, ul, ol
       indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
 
       hints: {
@@ -153,58 +128,41 @@ document.addEventListener("DOMContentLoaded", () => {
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
 
-      // ✅ νέο BEFORE: 1 πρόταση, όπως ζήτησες
-      defaultHtml: `
-        <div class="l2-box">
-          <div class="l2-box__label">Before (χωρίς δομή)</div>
-          <div class="l2-before">${LEVEL2_BEFORE_TEXT}</div>
-        </div>
-      `.trim(),
+      // ✅ plain single line (no box, no <br>, no tags)
+      defaultHtml: LEVEL2_BEFORE_TEXT,
 
       apply(tag) {
-        // “After” χρησιμοποιεί το ίδιο νόημα αλλά σπάει σε δομή
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
         const sentenceB = "και περιέχει:";
         const items = ["Κείμενα", "εικόνες", "ήχους"];
 
-        const box = (label, inner) =>
-          `<div class="l2-box"><div class="l2-box__label">${label}</div>${inner}</div>`;
-
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // BEFORE (σταθερό) — 1 πρόταση
-        const beforeHtml = box(
-          "Before (χωρίς δομή)",
-          `<div class="l2-before">${LEVEL2_BEFORE_TEXT}</div>`
-        );
+        // ✅ Before stays plain (single line) even when scanning
+        const beforeHtml = `<div>${LEVEL2_BEFORE_TEXT}</div>`;
 
-        // AFTER blocks
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        // hr: μέσα σε wrapper για visible highlight
         const dividerBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
             : `<div class="${focus("hr")}" style="height:10px"></div>`;
 
-        // sentence: p/br
         const sentenceInner =
           tag === "br"
             ? `${sentenceA}<br>${sentenceB}`
             : `${sentenceA} ${sentenceB}`;
 
-        // highlight στο block όταν tag==p ή tag==br
         const sentenceClass = (tag === "p" || tag === "br") ? "l2-focus" : "";
         const sentenceBlock =
           tag === "p"
             ? `<p class="${sentenceClass}">${sentenceInner}</p>`
             : `<div class="${sentenceClass}">${sentenceInner}</div>`;
 
-        // list: ul/ol, αλλιώς “σκέτη” εμφάνιση
         let listBlock = "";
         if (tag === "ul") {
           listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
@@ -214,29 +172,28 @@ document.addEventListener("DOMContentLoaded", () => {
           listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
         }
 
-        const afterHtml = box(
-          `After (με <${tag}>)`,
-          `${titleBlock}${dividerBlock}${sentenceBlock}${listBlock}`
-        );
+        const afterHtml = `
+          <div>
+            ${titleBlock}
+            ${dividerBlock}
+            ${sentenceBlock}
+            ${listBlock}
+          </div>
+        `.trim();
 
         return `${beforeHtml}${afterHtml}`;
       },
     },
   };
 
-  // -----------------------
   // AR engine
-  // -----------------------
   let currentLevel = null;
   let sceneEl = null;
   let arSystem = null;
   let isRunning = false;
   let resetTimer = null;
 
-  function clearReset() {
-    if (resetTimer) clearTimeout(resetTimer);
-    resetTimer = null;
-  }
+  function clearReset() { if (resetTimer) clearTimeout(resetTimer); resetTimer = null; }
 
   function scheduleReset() {
     clearReset();
@@ -253,7 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
 
-    // ✅ στο L2 κρύβουμε ξανά τον κώδικα στο reset
     if (currentLevel.key === "L2") hideCode();
     else showCode();
   }
@@ -327,7 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
-        // ✅ στο L2 δείχνουμε τον κώδικα μόνο αφού σκανάρει
         if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
@@ -370,10 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isRunning) return;
 
     enforcePortraitUI();
-    if (!isPortrait()) {
-      setStatus("Γύρισε σε portrait για να ξεκινήσεις");
-      return;
-    }
+    if (!isPortrait()) { setStatus("Γύρισε σε portrait για να ξεκινήσεις"); return; }
 
     await tryLockPortrait();
 
@@ -381,10 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus("Έλεγχος αρχείων…");
       await checkFileReachable(currentLevel.mindFile);
 
-      if (!arSystem) {
-        setStatus("Φόρτωση…");
-        return;
-      }
+      if (!arSystem) { setStatus("Φόρτωση…"); return; }
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
 
       setStatus("Ζητάω άδεια κάμερας…");
@@ -428,7 +377,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
-    // ✅ στο Level 2 κρύβουμε τον κώδικα από πριν
     if (currentLevel.key === "L2") hideCode();
     else showCode();
 
@@ -469,9 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
-  // -----------------------
-  // Quiz (απλό)
-  // -----------------------
+  // Quiz (mini)
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
@@ -556,7 +502,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
-  // Wiring UI
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
