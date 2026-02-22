@@ -7,6 +7,9 @@ body {
   overflow-x: hidden;
 }
 
+/* ✅ helper utility */
+.is-hidden { display: none !important; }
+
 /* Portrait overlay */
 .orientation-overlay {
   position: fixed;
@@ -286,7 +289,7 @@ body {
   background: rgba(34,197,94,.10);
 }
 
-/* Ensure hr is visible when wrapped inside l2-focus */
+/* Ensure hr visible when wrapped inside l2-focus */
 .l2-focus hr {
   border: none;
   border-top: 2px solid rgba(0,0,0,0.20);
