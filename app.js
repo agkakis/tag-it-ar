@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentLabel = document.getElementById("contentLabel");
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
-  const codeWrap = document.getElementById("codeWrap");
+  const codeWrap = document.getElementById("codeWrap") || document.querySelector("pre.code");
 
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
@@ -47,8 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setDetected(msg) { detectedTag.textContent = msg; }
   function setHint(msg) { hintText.textContent = msg; }
 
-  function hideCode() { codeWrap?.classList.add("is-hidden"); }
-  function showCode() { codeWrap?.classList.remove("is-hidden"); }
+  function hideCode() { if (codeWrap) codeWrap.classList.add("is-hidden"); }
+  function showCode() { if (codeWrap) codeWrap.classList.remove("is-hidden"); }
 
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -59,13 +59,26 @@ document.addEventListener("DOMContentLoaded", () => {
     which.classList.add("is-active");
   }
 
+  // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
+    // μικρό “buffer” για περιπτώσεις address bar
     return window.innerHeight >= window.innerWidth;
   }
 
-  function showOverlay() { overlay.classList.add("is-visible"); }
-  function hideOverlay() { overlay.classList.remove("is-visible"); }
-  function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
+  function showOverlay() {
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+
+  function hideOverlay() {
+    overlay.classList.remove("is-visible");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+
+  function enforcePortraitUI() {
+    if (isPortrait()) hideOverlay();
+    else showOverlay();
+  }
 
   async function tryLockPortrait() {
     try {
@@ -85,13 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------
   // Level configurations
   // -----------------------
-  const LEVEL2_TEXT =
-    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει: Κείμενα, εικόνες και ήχους.";
-
   const LEVELS = {
     L1: {
       key: "L1",
-      numTargets: 10,
       title: "Level 1 — Μορφοποίηση",
       mini: "Μπλε κάρτες: μορφοποίηση στο “Hello World!”",
       helper: "Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.",
@@ -143,8 +152,10 @@ document.addEventListener("DOMContentLoaded", () => {
       },
 
       // base: σκέτο κείμενο (μία γραμμή)
-      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
+      defaultHtml:
+        "<div>Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.</div>",
 
+      // UI-rendered HTML (may include div wrappers + highlights)
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
@@ -153,25 +164,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // 1) Title — μόνο όταν tag==h1 γίνεται <h1>
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        // 2) Divider — μόνο όταν tag==hr
         const hrBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
             : ``;
 
-        // 3) Sentence — p affects only the explanatory sentence.
-        // br: κάνει “μορφή λίστας” (σπάει σε γραμμές μετά το ":" και βάζει items σε νέες γραμμές)
         let sentenceBlock = "";
         let listBlock = "";
 
         if (tag === "br") {
-          // ✅ br as "line-list"
+          // br as "line-list"
           sentenceBlock = `
             <div class="l2-focus">
               ${sentenceA} ${sentenceB}<br>
@@ -180,7 +187,6 @@ document.addEventListener("DOMContentLoaded", () => {
               ${items[2]}
             </div>
           `.trim();
-          // Όταν κάνουμε br-list, ΔΕΝ βάζουμε επιπλέον listBlock (για να μην διπλασιάζεται)
           listBlock = "";
         } else {
           const sentenceClass = tag === "p" ? "l2-focus" : "";
@@ -189,13 +195,11 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<p class="${sentenceClass}">${sentenceA} ${sentenceB}</p>`
               : `<div class="${sentenceClass}">${sentenceA} ${sentenceB}</div>`;
 
-          // 4) List — ul/ol επηρεάζουν ΜΟΝΟ τη λίστα
           if (tag === "ul") {
             listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
           } else if (tag === "ol") {
             listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
           } else {
-            // default inline list
             listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
           }
         }
@@ -208,6 +212,35 @@ document.addEventListener("DOMContentLoaded", () => {
             ${listBlock}
           </div>
         `.trim();
+      },
+
+      // Code-view HTML (NO div wrappers, NO classes)
+      code(tag) {
+        const title = "Η πρώτη μου ιστοσελίδα!";
+        const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
+        const sentenceB = "και περιέχαει:";
+        const items = ["Κείμενα", "εικόνες", "ήχους"];
+        const inlineList = `${items[0]}, ${items[1]} και ${items[2]}.`;
+
+        if (tag === "h1") {
+          return `<h1>${title}</h1>\n${sentenceA} ${sentenceB} ${inlineList}`;
+        }
+        if (tag === "hr") {
+          return `${title}\n<hr>\n${sentenceA} ${sentenceB} ${inlineList}`;
+        }
+        if (tag === "p") {
+          return `${title}\n<p>${sentenceA} ${sentenceB}</p>\n${inlineList}`;
+        }
+        if (tag === "br") {
+          return `${title}\n${sentenceA} ${sentenceB}<br>\n${items[0]}<br>\n${items[1]}<br>\n${items[2]}`;
+        }
+        if (tag === "ul") {
+          return `${title}\n${sentenceA} ${sentenceB}\n<ul>\n  <li>${items[0]}</li>\n  <li>${items[1]}</li>\n  <li>${items[2]}</li>\n</ul>`;
+        }
+        if (tag === "ol") {
+          return `${title}\n${sentenceA} ${sentenceB}\n<ol>\n  <li>${items[0]}</li>\n  <li>${items[1]}</li>\n  <li>${items[2]}</li>\n</ol>`;
+        }
+        return `${title} ${sentenceA} ${sentenceB} ${inlineList}`;
       },
     },
   };
@@ -240,10 +273,9 @@ document.addEventListener("DOMContentLoaded", () => {
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
+  
 
-    // στο L2 κρύβουμε τον κώδικα από πριν/στο reset
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
+    if (currentLevel.key === \"L2\") hideCode(); else showCode();
   }
 
   function stopAR() {
@@ -277,14 +309,18 @@ document.addEventListener("DOMContentLoaded", () => {
     s.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
     s.setAttribute("mindar-image", `imageTargetSrc: ${mindFile}; autoStart: false;`);
 
-    const n = currentLevel?.numTargets ?? 10;
-    const targets = Array.from({ length: n }, (_, i) =>
-      `<a-entity id="t${i}" mindar-image-target="targetIndex: ${i}"></a-entity>`
-    ).join("");
-
     s.innerHTML = `
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      ${targets}
+      <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
+      <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
+      <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
+      <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
+      <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
+      <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
+      <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
+      <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
+      <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
+      <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
     `;
 
     arWrap.prepend(s);
@@ -300,27 +336,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function wireTargets() {
-    const n = currentLevel?.numTargets ?? 10;
-
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < 10; i++) {
       const e = sceneEl.querySelector(`#t${i}`);
       if (!e) continue;
 
       e.addEventListener("targetFound", () => {
         clearReset();
         const tag = currentLevel.indexToTag[i];
-        if (!tag) return;
-
         setDetected(`<${tag}>`);
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
-        // στο L2 δείχνουμε κώδικα μόνο όταν σκανάρει
         if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
         rendered.innerHTML = html;
-        codeBox.innerHTML = escapeHtml(html);
+        const codeHtml = (currentLevel.key === "L2" && typeof currentLevel.code === "function")
+          ? currentLevel.code(tag)
+          : html;
+        codeBox.innerHTML = escapeHtml(codeHtml);
       });
 
       e.addEventListener("targetLost", () => {
@@ -416,9 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
-    // στο Level 2 κρύβουμε τον κώδικα από πριν
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
+    if (currentLevel.key === "L2") hideCode(); else showCode();
 
     startBtn.disabled = true;
     stopBtn.disabled = true;
@@ -453,18 +485,25 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", handleOrientationChange);
   window.addEventListener("orientationchange", handleOrientationChange);
 
+  // ✅ κάνε 1–2 checks στην αρχή (σε iOS αλλάζει το viewport μετά το load)
   enforcePortraitUI();
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz (mini)
+  // Quiz
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
     { q: "Τι κάνει το <u>;", a: ["Υπογράμμιση", "Τίτλο", "Λίστα"], correct: 0 },
     { q: "Τι κάνει το <mark>;", a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"], correct: 1 },
+    { q: "Τι δείχνει το <del>;", a: ["Διαγραφή", "Εισαγωγή", "Δείκτη πάνω"], correct: 0 },
+    { q: "Τι δείχνει το <ins>;", a: ["Διαγραφή", "Προσθήκη/εισαγωγή", "Δείκτη κάτω"], correct: 1 },
+    { q: "Πότε χρησιμοποιούμε <sub>;", a: ["m²", "H₂O", "Λίστα"], correct: 1 },
+    { q: "Πότε χρησιμοποιούμε <sup>;", a: ["H₂O", "m²", "Τίτλο"], correct: 1 },
+    { q: "Τι σημαίνει συνήθως <strong>;", a: ["Έμφαση/σημαντικό", "Υπογράμμιση", "Διαχωριστικό"], correct: 0 },
+    { q: "Τι σημαίνει συνήθως <em>;", a: ["Έμφαση (συνήθως πλάγιο)", "Λίστα", "Νέα γραμμή"], correct: 0 },
   ];
 
   let quizIndex = 0;
@@ -544,7 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
+  // -----------------------
   // Wiring UI
+  // -----------------------
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
@@ -559,5 +600,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus("Σταμάτησε");
   });
 
+  // Initial state
   showScreen(homeScreen);
 });
