@@ -28,13 +28,13 @@
       <div class="logo">T</div>
       <div>
         <h1>Tag-it-AR</h1>
-        <p id="topSubtitle">Μάθε HTML με κάρτες AR!</p>
+        <p id="topSubtitle">Μάθε HTML με κάρτες AR.</p>
       </div>
     </div>
   </header>
 
   <main class="shell">
-    <!-- HOME -->
+    <!-- HOME SCREEN -->
     <section id="homeScreen" class="screen is-active">
       <div class="panel">
         <h2 class="screen-title">Διάλεξε επίπεδο</h2>
@@ -48,7 +48,7 @@
 
           <button id="goL2" class="menu-card green" type="button">
             <div class="menu-title">Level 2</div>
-            <div class="menu-desc">Δομή κειμένου (πράσινες κάρτες)</div>
+            <div class="menu-desc">Δομή άρθρου (πράσινες κάρτες)</div>
           </button>
 
           <button id="goQuiz" class="menu-card purple" type="button">
@@ -63,7 +63,7 @@
       </div>
     </section>
 
-    <!-- SCAN -->
+    <!-- SCAN SCREEN (Level 1 / Level 2) -->
     <section id="scanScreen" class="screen">
       <div class="layout">
         <section class="panel panel-scan">
@@ -80,7 +80,7 @@
           </div>
 
           <div class="ar-container" id="arWrap">
-            <!-- a-scene inserted by app.js -->
+            <!-- Το a-scene θα δημιουργείται δυναμικά από app.js -->
             <div class="reticle" aria-hidden="true">
               <div class="reticle-ring"></div>
               <div class="reticle-dot"></div>
@@ -106,7 +106,7 @@
           </div>
 
           <div class="result-block">
-            <p class="label" id="contentLabel">Κείμενο:</p>
+            <p class="label" id="contentLabel">Κείμενο (απόδοση):</p>
             <div id="rendered" class="rendered">—</div>
           </div>
 
@@ -122,7 +122,7 @@
       </div>
     </section>
 
-    <!-- QUIZ -->
+    <!-- QUIZ SCREEN -->
     <section id="quizScreen" class="screen">
       <div class="panel">
         <div class="panel-title">
