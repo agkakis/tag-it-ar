@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentLabel = document.getElementById("contentLabel");
   const rendered = document.getElementById("rendered");
   const codeBox = document.getElementById("codeBox");
-  const codeWrap = document.getElementById("codeWrap") || document.querySelector("pre.code");
+  const codeWrap = document.getElementById("codeWrap");
 
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
@@ -47,8 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setDetected(msg) { detectedTag.textContent = msg; }
   function setHint(msg) { hintText.textContent = msg; }
 
-  function hideCode() { if (codeWrap) codeWrap.classList.add("is-hidden"); }
-  function showCode() { if (codeWrap) codeWrap.classList.remove("is-hidden"); }
+  function hideCode() { codeWrap?.classList.add("is-hidden"); }
+  function showCode() { codeWrap?.classList.remove("is-hidden"); }
 
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -63,8 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.innerHeight >= window.innerWidth;
   }
 
-  function showOverlay() { overlay.classList.add("is-visible"); overlay.setAttribute("aria-hidden", "false"); }
-  function hideOverlay() { overlay.classList.remove("is-visible"); overlay.setAttribute("aria-hidden", "true"); }
+  function showOverlay() { overlay.classList.add("is-visible"); }
+  function hideOverlay() { overlay.classList.remove("is-visible"); }
   function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
 
   async function tryLockPortrait() {
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Level configurations
   // -----------------------
   const LEVEL2_TEXT =
-    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.";
+    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει: Κείμενα, εικόνες και ήχους.";
 
   const LEVELS = {
     L1: {
@@ -143,10 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
       },
 
       // base: σκέτο κείμενο (μία γραμμή)
-      defaultHtml:
-        "<div>Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.</div>",
+      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
 
-      // UI-rendered HTML (may include div wrappers + highlights)
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
@@ -155,21 +153,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
+        // 1) Title — μόνο όταν tag==h1 γίνεται <h1>
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
+        // 2) Divider — μόνο όταν tag==hr
         const hrBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
             : ``;
 
+        // 3) Sentence — p affects only the explanatory sentence.
+        // br: κάνει “μορφή λίστας” (σπάει σε γραμμές μετά το ":" και βάζει items σε νέες γραμμές)
         let sentenceBlock = "";
         let listBlock = "";
 
         if (tag === "br") {
-          // br as "line-list"
+          // ✅ br as "line-list"
           sentenceBlock = `
             <div class="l2-focus">
               ${sentenceA} ${sentenceB}<br>
@@ -178,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${items[2]}
             </div>
           `.trim();
+          // Όταν κάνουμε br-list, ΔΕΝ βάζουμε επιπλέον listBlock (για να μην διπλασιάζεται)
           listBlock = "";
         } else {
           const sentenceClass = tag === "p" ? "l2-focus" : "";
@@ -186,11 +189,13 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<p class="${sentenceClass}">${sentenceA} ${sentenceB}</p>`
               : `<div class="${sentenceClass}">${sentenceA} ${sentenceB}</div>`;
 
+          // 4) List — ul/ol επηρεάζουν ΜΟΝΟ τη λίστα
           if (tag === "ul") {
             listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
           } else if (tag === "ol") {
             listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
           } else {
+            // default inline list
             listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
           }
         }
@@ -203,35 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ${listBlock}
           </div>
         `.trim();
-      },
-
-      // Code-view HTML (NO div wrappers, NO classes)
-      code(tag) {
-        const title = "Η πρώτη μου ιστοσελίδα!";
-        const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
-        const sentenceB = "και περιέχαει:";
-        const items = ["Κείμενα", "εικόνες", "ήχους"];
-        const inlineList = `${items[0]}, ${items[1]} και ${items[2]}.`;
-
-        if (tag === "h1") {
-          return `<h1>${title}</h1>\n${sentenceA} ${sentenceB} ${inlineList}`;
-        }
-        if (tag === "hr") {
-          return `${title}\n<hr>\n${sentenceA} ${sentenceB} ${inlineList}`;
-        }
-        if (tag === "p") {
-          return `${title}\n<p>${sentenceA} ${sentenceB}</p>\n${inlineList}`;
-        }
-        if (tag === "br") {
-          return `${title}\n${sentenceA} ${sentenceB}<br>\n${items[0]}<br>\n${items[1]}<br>\n${items[2]}`;
-        }
-        if (tag === "ul") {
-          return `${title}\n${sentenceA} ${sentenceB}\n<ul>\n  <li>${items[0]}</li>\n  <li>${items[1]}</li>\n  <li>${items[2]}</li>\n</ul>`;
-        }
-        if (tag === "ol") {
-          return `${title}\n${sentenceA} ${sentenceB}\n<ol>\n  <li>${items[0]}</li>\n  <li>${items[1]}</li>\n  <li>${items[2]}</li>\n</ol>`;
-        }
-        return `${title} ${sentenceA} ${sentenceB} ${inlineList}`;
       },
     },
   };
@@ -265,7 +241,9 @@ document.addEventListener("DOMContentLoaded", () => {
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
 
-    if (currentLevel.key === "L2") hideCode(); else showCode();
+    // στο L2 κρύβουμε τον κώδικα από πριν/στο reset
+    if (currentLevel.key === "L2") hideCode();
+    else showCode();
   }
 
   function stopAR() {
@@ -337,16 +315,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
+        // στο L2 δείχνουμε κώδικα μόνο όταν σκανάρει
         if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
         rendered.innerHTML = html;
-
-        const codeHtml = (currentLevel.key === "L2" && typeof currentLevel.code === "function")
-          ? currentLevel.code(tag)
-          : html;
-
-        codeBox.innerHTML = escapeHtml(codeHtml);
+        codeBox.innerHTML = escapeHtml(html);
       });
 
       e.addEventListener("targetLost", () => {
@@ -442,7 +416,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
-    if (currentLevel.key === "L2") hideCode(); else showCode();
+    // στο Level 2 κρύβουμε τον κώδικα από πριν
+    if (currentLevel.key === "L2") hideCode();
+    else showCode();
 
     startBtn.disabled = true;
     stopBtn.disabled = true;
