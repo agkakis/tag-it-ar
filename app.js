@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
-        const sentenceB = "και περιέχαει:";
+        const sentenceB = "και περιέχει:";
         const items = ["Κείμενα", "εικόνες", "ήχους"];
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
