@@ -247,14 +247,14 @@ body {
 .rendered li { margin: 4px 0; }
 .rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
 
-/* Highlight for affected parts */
-.l2-focus{
+/* Highlight για το τμήμα που επηρεάζεται */
+.l2-focus {
   outline: 3px solid rgba(34,197,94,.35);
   border-radius: 10px;
   padding: 4px 6px;
   background: rgba(34,197,94,.10);
 }
-.l2-focus hr{
+.l2-focus hr {
   border: none;
   border-top: 2px solid rgba(0,0,0,0.20);
   margin: 10px 0;
