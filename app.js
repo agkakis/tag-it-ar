@@ -59,26 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
     which.classList.add("is-active");
   }
 
-  // ✅ ΠΙΟ ΣΤΑΘΕΡΟ σε iOS/Android από matchMedia
   function isPortrait() {
-    // μικρό “buffer” για περιπτώσεις address bar
     return window.innerHeight >= window.innerWidth;
   }
 
-  function showOverlay() {
-    overlay.classList.add("is-visible");
-    overlay.setAttribute("aria-hidden", "false");
-  }
-
-  function hideOverlay() {
-    overlay.classList.remove("is-visible");
-    overlay.setAttribute("aria-hidden", "true");
-  }
-
-  function enforcePortraitUI() {
-    if (isPortrait()) hideOverlay();
-    else showOverlay();
-  }
+  function showOverlay() { overlay.classList.add("is-visible"); overlay.setAttribute("aria-hidden", "false"); }
+  function hideOverlay() { overlay.classList.remove("is-visible"); overlay.setAttribute("aria-hidden", "true"); }
+  function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
 
   async function tryLockPortrait() {
     try {
@@ -98,9 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------
   // Level configurations
   // -----------------------
+  const LEVEL2_TEXT =
+    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχαει: Κείμενα, εικόνες και ήχους.";
+
   const LEVELS = {
     L1: {
       key: "L1",
+      numTargets: 10,
       title: "Level 1 — Μορφοποίηση",
       mini: "Μπλε κάρτες: μορφοποίηση στο “Hello World!”",
       helper: "Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.",
@@ -273,9 +264,8 @@ document.addEventListener("DOMContentLoaded", () => {
     rendered.innerHTML = currentLevel.defaultHtml;
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
-  
 
-    if (currentLevel.key === \"L2\") hideCode(); else showCode();
+    if (currentLevel.key === "L2") hideCode(); else showCode();
   }
 
   function stopAR() {
@@ -309,18 +299,14 @@ document.addEventListener("DOMContentLoaded", () => {
     s.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
     s.setAttribute("mindar-image", `imageTargetSrc: ${mindFile}; autoStart: false;`);
 
+    const n = currentLevel?.numTargets ?? 10;
+    const targets = Array.from({ length: n }, (_, i) =>
+      `<a-entity id="t${i}" mindar-image-target="targetIndex: ${i}"></a-entity>`
+    ).join("");
+
     s.innerHTML = `
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <a-entity id="t0" mindar-image-target="targetIndex: 0"></a-entity>
-      <a-entity id="t1" mindar-image-target="targetIndex: 1"></a-entity>
-      <a-entity id="t2" mindar-image-target="targetIndex: 2"></a-entity>
-      <a-entity id="t3" mindar-image-target="targetIndex: 3"></a-entity>
-      <a-entity id="t4" mindar-image-target="targetIndex: 4"></a-entity>
-      <a-entity id="t5" mindar-image-target="targetIndex: 5"></a-entity>
-      <a-entity id="t6" mindar-image-target="targetIndex: 6"></a-entity>
-      <a-entity id="t7" mindar-image-target="targetIndex: 7"></a-entity>
-      <a-entity id="t8" mindar-image-target="targetIndex: 8"></a-entity>
-      <a-entity id="t9" mindar-image-target="targetIndex: 9"></a-entity>
+      ${targets}
     `;
 
     arWrap.prepend(s);
@@ -336,13 +322,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function wireTargets() {
-    for (let i = 0; i < 10; i++) {
+    const n = currentLevel?.numTargets ?? 10;
+
+    for (let i = 0; i < n; i++) {
       const e = sceneEl.querySelector(`#t${i}`);
       if (!e) continue;
 
       e.addEventListener("targetFound", () => {
         clearReset();
         const tag = currentLevel.indexToTag[i];
+        if (!tag) return;
+
         setDetected(`<${tag}>`);
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
@@ -351,9 +341,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const html = currentLevel.apply(tag);
         rendered.innerHTML = html;
+
         const codeHtml = (currentLevel.key === "L2" && typeof currentLevel.code === "function")
           ? currentLevel.code(tag)
           : html;
+
         codeBox.innerHTML = escapeHtml(codeHtml);
       });
 
@@ -485,25 +477,18 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", handleOrientationChange);
   window.addEventListener("orientationchange", handleOrientationChange);
 
-  // ✅ κάνε 1–2 checks στην αρχή (σε iOS αλλάζει το viewport μετά το load)
   enforcePortraitUI();
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
   // -----------------------
-  // Quiz
+  // Quiz (mini)
   // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
     { q: "Τι κάνει το <u>;", a: ["Υπογράμμιση", "Τίτλο", "Λίστα"], correct: 0 },
     { q: "Τι κάνει το <mark>;", a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"], correct: 1 },
-    { q: "Τι δείχνει το <del>;", a: ["Διαγραφή", "Εισαγωγή", "Δείκτη πάνω"], correct: 0 },
-    { q: "Τι δείχνει το <ins>;", a: ["Διαγραφή", "Προσθήκη/εισαγωγή", "Δείκτη κάτω"], correct: 1 },
-    { q: "Πότε χρησιμοποιούμε <sub>;", a: ["m²", "H₂O", "Λίστα"], correct: 1 },
-    { q: "Πότε χρησιμοποιούμε <sup>;", a: ["H₂O", "m²", "Τίτλο"], correct: 1 },
-    { q: "Τι σημαίνει συνήθως <strong>;", a: ["Έμφαση/σημαντικό", "Υπογράμμιση", "Διαχωριστικό"], correct: 0 },
-    { q: "Τι σημαίνει συνήθως <em>;", a: ["Έμφαση (συνήθως πλάγιο)", "Λίστα", "Νέα γραμμή"], correct: 0 },
   ];
 
   let quizIndex = 0;
@@ -583,9 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
-  // -----------------------
   // Wiring UI
-  // -----------------------
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
@@ -600,6 +583,5 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus("Σταμάτησε");
   });
 
-  // Initial state
   showScreen(homeScreen);
 });
