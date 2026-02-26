@@ -1,563 +1,507 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Screens
-  const homeScreen = document.getElementById("homeScreen");
-  const scanScreen = document.getElementById("scanScreen");
-  const quizScreen = document.getElementById("quizScreen");
+/* app.js — Tag-it-AR
+   - 3 sections: Home / Scan / Quiz
+   - MindAR + A-Frame scene is injected dynamically in #arWrap when scanning starts
+   - Level 2 "code view" hides helper div wrappers via applyCode()
+*/
 
-  // Top UI
-  const topSubtitle = document.getElementById("topSubtitle");
+(() => {
+  "use strict";
 
-  // Home buttons
-  const goL1 = document.getElementById("goL1");
-  const goL2 = document.getElementById("goL2");
-  const goQuiz = document.getElementById("goQuiz");
-
-  // Back buttons
-  const backHomeFromScan = document.getElementById("backHomeFromScan");
-  const backHomeFromQuiz = document.getElementById("backHomeFromQuiz");
-
-  // Scan UI
-  const scanTitle = document.getElementById("scanTitle");
-  const scanMini = document.getElementById("scanMini");
-  const helperText = document.getElementById("helperText");
-
-  const arWrap = document.getElementById("arWrap");
-
-  const statusText = document.getElementById("statusText");
-  const detectedTag = document.getElementById("detectedTag");
-  const hintText = document.getElementById("hintText");
-
-  const contentLabel = document.getElementById("contentLabel");
-  const rendered = document.getElementById("rendered");
-  const codeBox = document.getElementById("codeBox");
-  const codeWrap = document.getElementById("codeWrap");
-
-  const startBtn = document.getElementById("startBtn");
-  const stopBtn = document.getElementById("stopBtn");
-
-  // Portrait overlay
-  const overlay = document.getElementById("portraitOverlay");
-
-  // Quiz UI
-  const quizBox = document.getElementById("quizBox");
-
-  const RESET_DELAY_MS = 2000;
-
-  function setStatus(msg) { statusText.textContent = msg; }
-  function setDetected(msg) { detectedTag.textContent = msg; }
-  function setHint(msg) { hintText.textContent = msg; }
-
-  function hideCode() { codeWrap?.classList.add("is-hidden"); }
-  function showCode() { codeWrap?.classList.remove("is-hidden"); }
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   function escapeHtml(str) {
-    return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  function showScreen(which) {
-    for (const el of [homeScreen, scanScreen, quizScreen]) el.classList.remove("is-active");
-    which.classList.add("is-active");
-  }
+  function show(el) { el?.classList.remove("hidden"); }
+  function hide(el) { el?.classList.add("hidden"); }
 
-  function isPortrait() {
-    return window.innerHeight >= window.innerWidth;
-  }
+  function setText(el, txt) { if (el) el.textContent = txt; }
+  function setHTML(el, html) { if (el) el.innerHTML = html; }
 
-  function showOverlay() { overlay.classList.add("is-visible"); }
-  function hideOverlay() { overlay.classList.remove("is-visible"); }
-  function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
+  // -----------------------------
+  // DOM
+  // -----------------------------
+  const homeSection = $("#home");
+  const scanSection = $("#scan");
+  const quizSection = $("#quiz");
 
-  async function tryLockPortrait() {
-    try {
-      if (screen?.orientation?.lock) {
-        await screen.orientation.lock("portrait");
-        return true;
-      }
-    } catch (_) {}
-    return false;
-  }
+  const btnHome = $("#btnHome");
+  const btnBackHome = $("#btnBackHome");
+  const btnDark = $("#btnDark");
 
-  async function checkFileReachable(path) {
-    const res = await fetch(path, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
-  }
+  const btnGoL1 = $("#btnGoL1");
+  const btnGoL2 = $("#btnGoL2");
+  const btnGoQuiz = $("#btnGoQuiz");
 
-  // -----------------------
-  // Level configurations
-  // -----------------------
-  const LEVEL2_TEXT =
-    "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει: Κείμενα, εικόνες και ήχους.";
+  const scanTitle = $("#scanTitle");
+  const scanSubtitle = $("#scanSubtitle");
 
-  const LEVELS = {
+  const statusBox = $("#statusBox");
+  const statusText = $("#statusText");
+  const hintText = $("#hintText");
+
+  const btnStart = $("#btnStart");
+  const btnStop = $("#btnStop");
+
+  const arWrap = $("#arWrap");
+  const rendered = $("#rendered");
+  const codeBox = $("#codeBox");
+
+  const quizContainer = $("#quizContainer");
+  const quizScore = $("#quizScore");
+
+  // Portrait overlay (optional)
+  const rotateOverlay = $("#rotateOverlay");
+
+  // -----------------------------
+  // State
+  // -----------------------------
+  const state = {
+    currentMode: "home", // home | scan | quiz
+    currentLevelKey: null, // L1 | L2
+    isScanning: false,
+    sceneEl: null,
+    foundTimer: null,
+    lastTargetIndex: -1
+  };
+
+  // -----------------------------
+  // Levels definition
+  // -----------------------------
+  const levels = {
     L1: {
       key: "L1",
-      numTargets: 10,
-      title: "Level 1 — Μορφοποίηση",
-      mini: "Μπλε κάρτες: μορφοποίηση στο “Hello World!”",
-      helper: "Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.",
-      mindFile: "./targets_level1.mind",
-      contentLabel: "Κείμενο (απόδοση):",
-      defaultHtml: "<p>Hello World!</p>",
-      indexToTag: {
-        0: "b", 1: "i", 2: "u", 3: "mark", 4: "del",
-        5: "ins", 6: "sub", 7: "sup", 8: "strong", 9: "em",
-      },
+      title: "Level 1",
+      subtitle: "Μορφοποίηση κειμένου (μπλε κάρτες)",
+      mindFile: "level-1.mind", // change to your path
+      // Map target index -> tag key
+      targets: [
+        "i", "b", "u", "h1", "strong", "em", "ins",
+        "sub", "sup", "del", "code", "kbd"
+      ],
+      baseText: "Hello World!",
       hints: {
-        b: "Έντονα γράμματα.",
-        i: "Πλάγια γράμματα.",
-        u: "Υπογράμμιση.",
-        mark: "Επισήμανση (highlight).",
-        del: "Διαγραφή (σαν διορθώσεις).",
-        ins: "Εισαγωγή/προσθήκη (σαν διορθώσεις).",
-        sub: "Δείκτης κάτω (π.χ. H₂O).",
-        sup: "Δείκτης πάνω (π.χ. m²).",
-        strong: "Σημαντικό (συνήθως έντονο).",
-        em: "Έμφαση (συνήθως πλάγιο).",
+        i: "Πλάγια γραφή με <i>…</i>",
+        b: "Έντονη γραφή με <b>…</b>",
+        u: "Υπογράμμιση με <u>…</u>",
+        h1: "Επικεφαλίδα με <h1>…</h1>",
+        strong: "Σημαντική έντονη έμφαση με <strong>…</strong>",
+        em: "Έμφαση με <em>…</em>",
+        ins: "Εισαγωγή/προσθήκη με <ins>…</ins>",
+        sub: "Δείκτης κάτω με <sub>…</sub>",
+        sup: "Δείκτης πάνω με <sup>…</sup>",
+        del: "Διαγραφή με <del>…</del>",
+        code: "Κώδικας inline με <code>…</code>",
+        kbd: "Πλήκτρο/συντόμευση με <kbd>…</kbd>"
       },
       apply(tag) {
-        if (tag === "sub") return "<p>H<sub>2</sub>O</p>";
-        if (tag === "sup") return "<p>m<sup>2</sup></p>";
-        return `<p><${tag}>Hello World!</${tag}></p>`;
-      },
+        const t = this.baseText;
+        switch (tag) {
+          case "i": return `<i>${t}</i>`;
+          case "b": return `<b>${t}</b>`;
+          case "u": return `<u>${t}</u>`;
+          case "h1": return `<h1>${t}</h1>`;
+          case "strong": return `<strong>${t}</strong>`;
+          case "em": return `<em>${t}</em>`;
+          case "ins": return `<ins>${t}</ins>`;
+          case "sub": return `H<sub>2</sub>O`;
+          case "sup": return `x<sup>2</sup>`;
+          case "del": return `<del>${t}</del>`;
+          case "code": return `<code>${t}</code>`;
+          case "kbd": return `Πάτα <kbd>Ctrl</kbd> + <kbd>S</kbd>`;
+          default: return t;
+        }
+      }
     },
 
     L2: {
       key: "L2",
-      numTargets: 6,
-      title: "Level 2 — Δομή",
-      mini: "Πράσινες κάρτες: εφαρμογή 1 κανόνα στο ίδιο κείμενο",
-      helper: "Κάθε κάρτα εφαρμόζει ένα tag στο ίδιο κείμενο (χωρίς before/after).",
-      mindFile: "./targets_level2.mind",
-      contentLabel: "Κείμενο (με επίδραση):",
-
-      // σειρά targets: <h1>, <p>, <br>, <hr>, <ul>, <ol>
-      indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
-
+      title: "Level 2",
+      subtitle: "Δομή κειμένου (πράσινες κάρτες)",
+      mindFile: "level-2.mind", // change to your path
+      targets: ["h1", "p", "br", "hr", "ul", "ol"],
       hints: {
-        h1: "Κύριος τίτλος: ξεχωρίζει το θέμα της σελίδας.",
-        p: "Παράγραφος: ομαδοποιεί προτάσεις και δίνει spacing.",
-        br: "Αλλαγή γραμμής: εδώ τη χρησιμοποιούμε σαν ‘λίστα’ με γραμμές.",
-        hr: "Οπτικός διαχωριστής ενότητας.",
-        ul: "Λίστα bullets (απλή απαρίθμηση).",
-        ol: "Αριθμημένη λίστα (σειρά/βήματα).",
+        h1: "Τίτλος σε <h1>…</h1>",
+        p: "Παράγραφος με <p>…</p>",
+        br: "Αλλαγή γραμμής με <br>",
+        hr: "Οριζόντια γραμμή με <hr>",
+        ul: "Λίστα χωρίς αρίθμηση με <ul><li>…</li></ul>",
+        ol: "Λίστα με αρίθμηση με <ol><li>…</li></ol>"
       },
 
-      // base: σκέτο κείμενο (μία γραμμή)
-      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
-
+      // Rendered HTML (με wrappers για highlight)
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
         const sentenceB = "και περιέχαει:";
         const items = ["Κείμενα", "εικόνες", "ήχους"];
 
-        const focus = (name) => (name === tag ? "l2-focus" : "");
+        // helper to wrap focus
+        const focus = (html) => `<div class="l2-focus">${html}</div>`;
 
-        // 1) Title — μόνο όταν tag==h1 γίνεται <h1>
         const titleBlock =
-          tag === "h1"
-            ? `<h1 class="${focus("h1")}">${title}</h1>`
-            : `<div class="${focus("h1")}">${title}</div>`;
+          tag === "h1" ? focus(`<h1>${title}</h1>`) : `<div>${title}</div>`;
 
-        // 2) Divider — μόνο όταν tag==hr
         const hrBlock =
-          tag === "hr"
-            ? `<div class="${focus("hr")}"><hr></div>`
-            : ``;
+          tag === "hr" ? focus(`<hr>`) : ``;
 
-        // 3) Sentence — p affects only the explanatory sentence.
-        // br: κάνει “μορφή λίστας” (σπάει σε γραμμές μετά το ":" και βάζει items σε νέες γραμμές)
         let sentenceBlock = "";
         let listBlock = "";
 
         if (tag === "br") {
-          // ✅ br as "line-list"
-          sentenceBlock = `
-            <div class="l2-focus">
-              ${sentenceA} ${sentenceB}<br>
-              ${items[0]}<br>
-              ${items[1]}<br>
-              ${items[2]}
-            </div>
-          `.trim();
-          // Όταν κάνουμε br-list, ΔΕΝ βάζουμε επιπλέον listBlock (για να μην διπλασιάζεται)
+          // sentence + "list" as line breaks
+          sentenceBlock = focus(
+            `${sentenceA} ${sentenceB}<br>${items[0]}<br>${items[1]}<br>${items[2]}`
+          );
           listBlock = "";
         } else {
-          const sentenceClass = tag === "p" ? "l2-focus" : "";
           sentenceBlock =
             tag === "p"
-              ? `<p class="${sentenceClass}">${sentenceA} ${sentenceB}</p>`
-              : `<div class="${sentenceClass}">${sentenceA} ${sentenceB}</div>`;
+              ? focus(`<p>${sentenceA} ${sentenceB}</p>`)
+              : `<div>${sentenceA} ${sentenceB}</div>`;
 
-          // 4) List — ul/ol επηρεάζουν ΜΟΝΟ τη λίστα
           if (tag === "ul") {
-            listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
+            listBlock = focus(`<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`);
           } else if (tag === "ol") {
-            listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+            listBlock = focus(`<ol>${items.map(x => `<li>${x}</li>`).join("")}</ol>`);
           } else {
-            // default inline list
             listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
           }
         }
 
-        return `
-          <div>
-            ${titleBlock}
-            ${hrBlock}
-            ${sentenceBlock}
-            ${listBlock}
-          </div>
-        `.trim();
+        // outer wrapper exists only for layout grouping
+        return `<div class="l2-root">${titleBlock}${hrBlock}${sentenceBlock}${listBlock}</div>`;
       },
-    },
+
+      // Code HTML (ΧΩΡΙΣ wrappers div)
+      applyCode(tag) {
+        const title = "Η πρώτη μου ιστοσελίδα!";
+        const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
+        const sentenceB = "και περιέχαει:";
+        const items = ["Κείμενα", "εικόνες", "ήχους"];
+
+        const titleBlock =
+          tag === "h1" ? `<h1>${title}</h1>` : `${title}`;
+
+        const hrBlock = tag === "hr" ? `<hr>` : ``;
+
+        let sentenceBlock = "";
+        let listBlock = "";
+
+        if (tag === "br") {
+          sentenceBlock = `
+${sentenceA} ${sentenceB}<br>
+${items[0]}<br>
+${items[1]}<br>
+${items[2]}
+          `.trim();
+          listBlock = "";
+        } else {
+          sentenceBlock =
+            tag === "p"
+              ? `<p>${sentenceA} ${sentenceB}</p>`
+              : `${sentenceA} ${sentenceB}`;
+
+          if (tag === "ul") {
+            listBlock = `<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
+          } else if (tag === "ol") {
+            listBlock = `<ol>${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+          } else {
+            listBlock = `${items[0]}, ${items[1]} και ${items[2]}.`;
+          }
+        }
+
+        return [titleBlock, hrBlock, sentenceBlock, listBlock].filter(Boolean).join("\n");
+      }
+    }
   };
 
-  // -----------------------
-  // AR engine
-  // -----------------------
-  let currentLevel = null;
-  let sceneEl = null;
-  let arSystem = null;
-  let isRunning = false;
-  let resetTimer = null;
-
-  function clearReset() {
-    if (resetTimer) clearTimeout(resetTimer);
-    resetTimer = null;
-  }
-
-  function scheduleReset() {
-    clearReset();
-    resetTimer = setTimeout(() => {
-      setDefaultContent();
-      setStatus("Αναμονή…");
-    }, RESET_DELAY_MS);
-  }
-
-  function setDefaultContent() {
-    setDetected("—");
-    setHint("—");
-    rendered.innerHTML = currentLevel.defaultHtml;
-    codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
-    contentLabel.textContent = currentLevel.contentLabel;
-
-    // στο L2 κρύβουμε τον κώδικα από πριν/στο reset
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
-  }
-
-  function stopAR() {
-    try {
-      if (!arSystem) return;
-      isRunning = false;
-      clearReset();
-      arSystem.stop();
-      stopMindarCameraTracks();
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-    } catch (_) {}
-  }
-
-  function destroyScene() {
-    stopAR();
-    if (sceneEl) {
-      sceneEl.remove();
-      sceneEl = null;
-      arSystem = null;
+  // -----------------------------
+  // Quiz (simple)
+  // -----------------------------
+  const quizData = [
+    {
+      q: "Ποιο tag δημιουργεί κύρια επικεφαλίδα;",
+      a: ["<p>", "<h1>", "<br>", "<hr>"],
+      correct: 1
+    },
+    {
+      q: "Ποιο tag κάνει αλλαγή γραμμής;",
+      a: ["<br>", "<ul>", "<em>", "<sub>"],
+      correct: 0
+    },
+    {
+      q: "Ποιο tag φτιάχνει λίστα με αρίθμηση;",
+      a: ["<ul>", "<ol>", "<li>", "<strong>"],
+      correct: 1
     }
-  }
-
-  function buildScene(mindFile) {
-    destroyScene();
-
-    const s = document.createElement("a-scene");
-    s.setAttribute("embedded", "");
-    s.setAttribute("vr-mode-ui", "enabled: false");
-    s.setAttribute("device-orientation-permission-ui", "enabled: false");
-    s.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
-    s.setAttribute("mindar-image", `imageTargetSrc: ${mindFile}; autoStart: false;`);
-
-    const n = currentLevel?.numTargets ?? 10;
-    const targets = Array.from({ length: n }, (_, i) =>
-      `<a-entity id="t${i}" mindar-image-target="targetIndex: ${i}"></a-entity>`
-    ).join("");
-
-    s.innerHTML = `
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      ${targets}
-    `;
-
-    arWrap.prepend(s);
-    sceneEl = s;
-
-    sceneEl.addEventListener("loaded", () => {
-      arSystem = sceneEl.systems["mindar-image-system"];
-      wireTargets();
-      setStatus("Έτοιμο – πάτα «Έναρξη»");
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-    });
-  }
-
-  function wireTargets() {
-    const n = currentLevel?.numTargets ?? 10;
-
-    for (let i = 0; i < n; i++) {
-      const e = sceneEl.querySelector(`#t${i}`);
-      if (!e) continue;
-
-      e.addEventListener("targetFound", () => {
-        clearReset();
-        const tag = currentLevel.indexToTag[i];
-        if (!tag) return;
-
-        setDetected(`<${tag}>`);
-        setHint(currentLevel.hints[tag] || "—");
-        setStatus("Εντοπίστηκε κάρτα");
-
-        // στο L2 δείχνουμε κώδικα μόνο όταν σκανάρει
-        if (currentLevel.key === "L2") showCode();
-
-        const html = currentLevel.apply(tag);
-        rendered.innerHTML = html;
-        codeBox.innerHTML = escapeHtml(html);
-      });
-
-      e.addEventListener("targetLost", () => {
-        setStatus("Η κάρτα χάθηκε – επιστροφή σε 2s…");
-        scheduleReset();
-      });
-    }
-  }
-
-  async function warmupCameraOnce() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false
-    });
-    stream.getTracks().forEach(t => t.stop());
-  }
-
-  function findMindarStreamVideo() {
-    const vids = Array.from(arWrap.querySelectorAll("video"));
-    return vids.find(v => v.srcObject instanceof MediaStream) || null;
-  }
-
-  function stopMindarCameraTracks() {
-    const v = findMindarStreamVideo();
-    const stream = v?.srcObject;
-    if (stream instanceof MediaStream) {
-      stream.getTracks().forEach(t => t.stop());
-      v.srcObject = null;
-      return true;
-    }
-    return false;
-  }
-
-  async function startAR() {
-    if (isRunning) return;
-
-    enforcePortraitUI();
-    if (!isPortrait()) {
-      setStatus("Γύρισε σε portrait για να ξεκινήσεις");
-      return;
-    }
-
-    await tryLockPortrait();
-
-    try {
-      setStatus("Έλεγχος αρχείων…");
-      await checkFileReachable(currentLevel.mindFile);
-
-      if (!arSystem) {
-        setStatus("Φόρτωση…");
-        return;
-      }
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
-
-      setStatus("Ζητάω άδεια κάμερας…");
-      await warmupCameraOnce();
-
-      setStatus("Ξεκινάω σάρωση…");
-      arSystem.start();
-      isRunning = true;
-
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-
-      setTimeout(() => {
-        if (!isRunning) return;
-        const v = findMindarStreamVideo();
-        if (v) {
-          v.style.display = "block";
-          v.style.opacity = "1";
-          v.style.visibility = "visible";
-        }
-        setStatus("Σάρωση ενεργή");
-      }, 600);
-
-    } catch (e) {
-      console.error(e);
-      isRunning = false;
-      setStatus("Αποτυχία εκκίνησης");
-      setHint(e?.message ? e.message : String(e));
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-    }
-  }
-
-  function enterScan(levelKey) {
-    currentLevel = LEVELS[levelKey];
-
-    topSubtitle.textContent = currentLevel.title;
-    scanTitle.textContent = currentLevel.title;
-    scanMini.textContent = currentLevel.mini;
-    helperText.textContent = currentLevel.helper;
-
-    showScreen(scanScreen);
-
-    // στο Level 2 κρύβουμε τον κώδικα από πριν
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
-
-    startBtn.disabled = true;
-    stopBtn.disabled = true;
-    setStatus("Φόρτωση…");
-    setDetected("—");
-    setHint("—");
-
-    buildScene(currentLevel.mindFile);
-
-    rendered.innerHTML = currentLevel.defaultHtml;
-    codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
-    contentLabel.textContent = currentLevel.contentLabel;
-  }
-
-  function enterHome() {
-    stopAR();
-    destroyScene();
-    topSubtitle.textContent = "Μάθε HTML με κάρτες AR.";
-    showScreen(homeScreen);
-  }
-
-  function handleOrientationChange() {
-    enforcePortraitUI();
-    if (!isPortrait() && isRunning) {
-      stopAR();
-      setStatus("Σταμάτησε — γύρισε σε portrait για να συνεχίσεις");
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-    }
-  }
-
-  window.addEventListener("resize", handleOrientationChange);
-  window.addEventListener("orientationchange", handleOrientationChange);
-
-  enforcePortraitUI();
-  setTimeout(enforcePortraitUI, 250);
-  setTimeout(enforcePortraitUI, 800);
-
-  // -----------------------
-  // Quiz (mini)
-  // -----------------------
-  const QUIZ = [
-    { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
-    { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
-    { q: "Τι κάνει το <u>;", a: ["Υπογράμμιση", "Τίτλο", "Λίστα"], correct: 0 },
-    { q: "Τι κάνει το <mark>;", a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"], correct: 1 },
   ];
 
-  let quizIndex = 0;
-  let quizScore = 0;
-  let quizLocked = false;
+  // -----------------------------
+  // Navigation
+  // -----------------------------
+  function go(mode) {
+    state.currentMode = mode;
 
-  function renderQuiz() {
-    const item = QUIZ[quizIndex];
-    if (!item) return;
+    if (mode !== "scan" && state.isScanning) stopScanning();
 
-    quizBox.innerHTML = `
-      <div class="quiz-q">${quizIndex + 1}/${QUIZ.length}: ${escapeHtml(item.q)}</div>
-      <div class="quiz-answers">
-        ${item.a.map((txt, idx) => `<button class="answer-btn" type="button" data-idx="${idx}">${escapeHtml(txt)}</button>`).join("")}
-      </div>
-      <div class="quiz-footer">
-        <div><strong>Σκορ:</strong> ${quizScore}</div>
-        <div><strong>Πρόοδος:</strong> ${quizIndex + 1}/${QUIZ.length}</div>
-      </div>
+    hide(homeSection);
+    hide(scanSection);
+    hide(quizSection);
+
+    if (mode === "home") show(homeSection);
+    if (mode === "scan") show(scanSection);
+    if (mode === "quiz") show(quizSection);
+  }
+
+  // -----------------------------
+  // MindAR scene injection
+  // -----------------------------
+  function buildSceneHtml(mindFile, targetsCount) {
+    // We create a <a-scene> with MindAR image system.
+    // NOTE: Requires external libs in index.html (A-Frame + MindAR)
+    const targets = Array.from({ length: targetsCount }, (_, i) => {
+      // Empty entities that only emit targetFound/targetLost
+      return `
+        <a-entity mindar-image-target="targetIndex: ${i}" id="target-${i}">
+          <a-entity position="0 0 0"></a-entity>
+        </a-entity>
+      `;
+    }).join("");
+
+    return `
+      <a-scene
+        embedded
+        renderer="colorManagement: true; physicallyCorrectLights: true"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        mindar-image="imageTargetSrc: ${mindFile}; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+      >
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        ${targets}
+      </a-scene>
     `;
+  }
 
-    quizLocked = false;
+  function attachTargetListeners(level) {
+    for (let i = 0; i < level.targets.length; i++) {
+      const tEl = $(`#target-${i}`, state.sceneEl);
+      if (!tEl) continue;
 
-    const buttons = quizBox.querySelectorAll(".answer-btn");
-    buttons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (quizLocked) return;
-        quizLocked = true;
+      tEl.addEventListener("targetFound", () => onTargetFound(level, i));
+      tEl.addEventListener("targetLost", () => onTargetLost(level, i));
+    }
+  }
 
-        const idx = Number(btn.getAttribute("data-idx"));
-        const correct = item.correct;
+  // -----------------------------
+  // Target handling
+  // -----------------------------
+  function onTargetFound(level, idx) {
+    state.lastTargetIndex = idx;
+    clearTimeout(state.foundTimer);
 
-        buttons.forEach(b => {
-          const bi = Number(b.getAttribute("data-idx"));
-          if (bi === correct) b.classList.add("correct");
-          if (bi === idx && idx !== correct) b.classList.add("wrong");
-          b.disabled = true;
-        });
+    const tag = level.targets[idx] ?? null;
+    if (!tag) return;
 
-        if (idx === correct) quizScore++;
+    setText(statusText, `Αναγνωρίστηκε: <${tag}>`);
+    setText(hintText, level.hints?.[tag] ?? "");
 
-        setTimeout(() => {
-          quizIndex++;
-          if (quizIndex >= QUIZ.length) {
-            quizBox.innerHTML = `
-              <div class="quiz-q">Τέλος! 🎉</div>
-              <p>Σκορ: <strong>${quizScore}</strong> / ${QUIZ.length}</p>
-              <div class="buttons">
-                <button id="restartQuiz" class="btn btn-primary" type="button">Ξανά</button>
-                <button id="goHomeAfterQuiz" class="btn btn-secondary" type="button">Αρχική</button>
-              </div>
-            `;
-            document.getElementById("restartQuiz").addEventListener("click", () => {
-              quizIndex = 0; quizScore = 0;
-              renderQuiz();
-            });
-            document.getElementById("goHomeAfterQuiz").addEventListener("click", enterHome);
-          } else {
-            renderQuiz();
-          }
-        }, 650);
+    const html = level.apply(tag);
+    const codeHtml = level.applyCode ? level.applyCode(tag) : html;
+
+    setHTML(rendered, html);
+    setHTML(codeBox, escapeHtml(codeHtml));
+  }
+
+  function onTargetLost(level, idx) {
+    if (idx !== state.lastTargetIndex) return;
+
+    setText(statusText, "Η κάρτα χάθηκε — επιστροφή σε 2s…");
+    clearTimeout(state.foundTimer);
+
+    state.foundTimer = setTimeout(() => {
+      // reset output (simple)
+      setText(statusText, "Έτοιμο για σάρωση…");
+      setText(hintText, "Σκάναρε μία κάρτα για να δεις το αποτέλεσμα.");
+      setHTML(rendered, `<div class="placeholder">Το αποτέλεσμα θα εμφανιστεί εδώ.</div>`);
+      setHTML(codeBox, escapeHtml("<!-- Ο κώδικας θα εμφανιστεί εδώ -->"));
+      state.lastTargetIndex = -1;
+    }, 2000);
+  }
+
+  // -----------------------------
+  // Scanning controls
+  // -----------------------------
+  function startScanning() {
+    if (state.isScanning) return;
+
+    const level = levels[state.currentLevelKey];
+    if (!level) return;
+
+    state.isScanning = true;
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+
+    setText(statusText, "Άνοιγμα κάμερας…");
+    setText(hintText, "Στόχευσε μια κάρτα.");
+
+    // inject scene
+    arWrap.innerHTML = buildSceneHtml(level.mindFile, level.targets.length);
+    state.sceneEl = $("a-scene", arWrap);
+
+    // wait a tick for DOM
+    setTimeout(() => {
+      attachTargetListeners(level);
+      setText(statusText, "Σάρωση ενεργή.");
+    }, 0);
+  }
+
+  function stopScanning() {
+    if (!state.isScanning) return;
+
+    state.isScanning = false;
+    btnStart.disabled = false;
+    btnStop.disabled = true;
+
+    clearTimeout(state.foundTimer);
+    state.lastTargetIndex = -1;
+
+    // Remove scene (stops camera)
+    arWrap.innerHTML = "";
+    state.sceneEl = null;
+
+    setText(statusText, "Σάρωση σταμάτησε.");
+    setText(hintText, "Πάτα Έναρξη για να ξεκινήσεις ξανά.");
+  }
+
+  // -----------------------------
+  // Quiz rendering
+  // -----------------------------
+  function renderQuiz() {
+    let score = 0;
+
+    const form = document.createElement("form");
+    form.className = "quiz-form";
+
+    quizData.forEach((item, qi) => {
+      const block = document.createElement("div");
+      block.className = "quiz-q";
+
+      const q = document.createElement("h3");
+      q.textContent = `${qi + 1}. ${item.q}`;
+      block.appendChild(q);
+
+      item.a.forEach((opt, ai) => {
+        const label = document.createElement("label");
+        label.className = "quiz-opt";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = `q${qi}`;
+        input.value = String(ai);
+        label.appendChild(input);
+
+        const span = document.createElement("span");
+        span.textContent = opt;
+        label.appendChild(span);
+
+        block.appendChild(label);
       });
+
+      form.appendChild(block);
     });
+
+    const submit = document.createElement("button");
+    submit.type = "submit";
+    submit.textContent = "Υποβολή";
+    form.appendChild(submit);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      score = 0;
+
+      quizData.forEach((item, qi) => {
+        const chosen = form.querySelector(`input[name="q${qi}"]:checked`);
+        if (!chosen) return;
+        if (Number(chosen.value) === item.correct) score++;
+      });
+
+      setText(quizScore, `Σκορ: ${score}/${quizData.length}`);
+    });
+
+    quizContainer.innerHTML = "";
+    quizContainer.appendChild(form);
+    setText(quizScore, "");
   }
 
-  function enterQuiz() {
-    stopAR();
-    destroyScene();
-    topSubtitle.textContent = "Quiz — Έλεγξε τι έμαθες";
-    showScreen(quizScreen);
-
-    enforcePortraitUI();
-    setTimeout(enforcePortraitUI, 250);
-
-    quizIndex = 0;
-    quizScore = 0;
-    renderQuiz();
+  // -----------------------------
+  // Orientation overlay (optional)
+  // -----------------------------
+  function updateOrientationOverlay() {
+    if (!rotateOverlay) return;
+    const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+    if (isLandscape) show(rotateOverlay);
+    else hide(rotateOverlay);
   }
 
-  // Wiring UI
-  goL1.addEventListener("click", () => enterScan("L1"));
-  goL2.addEventListener("click", () => enterScan("L2"));
-  goQuiz.addEventListener("click", enterQuiz);
+  // -----------------------------
+  // Events
+  // -----------------------------
+  btnHome?.addEventListener("click", () => go("home"));
+  btnBackHome?.addEventListener("click", () => go("home"));
 
-  backHomeFromScan.addEventListener("click", enterHome);
-  backHomeFromQuiz.addEventListener("click", enterHome);
-
-  startBtn.addEventListener("click", startAR);
-  stopBtn.addEventListener("click", () => {
-    stopAR();
-    setDefaultContent();
-    setStatus("Σταμάτησε");
+  btnGoL1?.addEventListener("click", () => {
+    state.currentLevelKey = "L1";
+    setText(scanTitle, `${levels.L1.title} — Σάρωση`);
+    setText(scanSubtitle, levels.L1.subtitle);
+    go("scan");
   });
 
-  showScreen(homeScreen);
-});
+  btnGoL2?.addEventListener("click", () => {
+    state.currentLevelKey = "L2";
+    setText(scanTitle, `${levels.L2.title} — Σάρωση`);
+    setText(scanSubtitle, levels.L2.subtitle);
+    go("scan");
+  });
+
+  btnGoQuiz?.addEventListener("click", () => {
+    go("quiz");
+    renderQuiz();
+  });
+
+  btnStart?.addEventListener("click", startScanning);
+  btnStop?.addEventListener("click", stopScanning);
+
+  btnDark?.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+  });
+
+  window.addEventListener("resize", updateOrientationOverlay);
+  window.addEventListener("orientationchange", updateOrientationOverlay);
+
+  // -----------------------------
+  // Init
+  // -----------------------------
+  function initDefaults() {
+    go("home");
+
+    setText(statusText, "Έτοιμο για σάρωση…");
+    setText(hintText, "Σκάναρε μία κάρτα για να δεις το αποτέλεσμα.");
+    setHTML(rendered, `<div class="placeholder">Το αποτέλεσμα θα εμφανιστεί εδώ.</div>`);
+    setHTML(codeBox, escapeHtml("<!-- Ο κώδικας θα εμφανιστεί εδώ -->"));
+
+    btnStop.disabled = true;
+    updateOrientationOverlay();
+  }
+
+  initDefaults();
+})();
