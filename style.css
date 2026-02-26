@@ -4,10 +4,10 @@ body {
   margin: 0;
   background: linear-gradient(180deg, #fff7e6 0%, #f2fbff 55%, #f7f4ef 100%);
   color: #111;
-
-  /* ✅ κόβει οριζόντια κύλιση σε όλη την εφαρμογή */
   overflow-x: hidden;
 }
+
+.is-hidden { display: none !important; }
 
 /* Portrait overlay */
 .orientation-overlay {
@@ -22,10 +22,7 @@ body {
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(6px);
 }
-.orientation-overlay.is-visible {
-  display: flex;
-  pointer-events: auto;
-}
+.orientation-overlay.is-visible { display: flex; pointer-events: auto; }
 .orientation-card {
   width: min(520px, 92vw);
   background: white;
@@ -47,9 +44,6 @@ body {
   color: white;
   background: linear-gradient(135deg, #3b82f6, #22c55e);
 }
-.orientation-card h2 { margin: 6px 0; font-size: 18px; }
-.orientation-card p { margin: 6px 0; font-size: 14px; color: #222; }
-.orientation-card p.small { font-size: 12px; color: #555; }
 
 .topbar {
   padding: 14px 16px;
@@ -77,8 +71,6 @@ body {
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-
-  /* ✅ αποτρέπει overflow μέσα σε panels */
   overflow-x: hidden;
 }
 
@@ -119,10 +111,9 @@ body {
   margin-bottom: 10px;
 }
 
-/* Home menu */
+/* Home */
 .screen-title { margin: 4px 0 0 0; font-size: 18px; }
 .screen-subtitle { margin: 6px 0 12px 0; font-size: 13px; color: #444; }
-
 .menu-grid { display: grid; gap: 12px; }
 
 .menu-card {
@@ -136,27 +127,18 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-
 .menu-title { font-weight: 900; font-size: 16px; }
 .menu-desc { margin-top: 4px; font-size: 13px; color: #333; }
-
 .menu-card.blue { border-top: 6px solid #3b82f6; }
 .menu-card.green { border-top: 6px solid #22c55e; }
 .menu-card.purple { border-top: 6px solid #a855f7; }
-
 .note { margin: 12px 0 0 0; font-size: 12px; color: #555; }
 
-/* Scan layout */
-.layout {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr;
-}
-@media (min-width: 900px) {
-  .layout { grid-template-columns: 1fr 1fr; align-items: start; }
-}
+/* Layout */
+.layout { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .layout { grid-template-columns: 1fr 1fr; align-items: start; } }
 
-/* AR container */
+/* AR */
 .ar-container {
   width: 100%;
   height: 260px;
@@ -231,14 +213,8 @@ body {
   font-size: 14px;
   min-width: 120px;
   background: #fff;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
-.btn.small {
-  min-width: auto;
-  padding: 8px 10px;
-  font-size: 12px;
-}
+.btn.small { min-width: auto; padding: 8px 10px; font-size: 12px; }
 .btn-primary {
   background: linear-gradient(135deg, #3b82f6, #22c55e);
   color: white;
@@ -251,55 +227,37 @@ body {
 .result-block { margin-top: 12px; }
 .label { margin: 0 0 6px 0; font-size: 13px; color: #374151; }
 
-/* ✅ εδώ είναι το κλειδί για το Level 2 overflow */
+/* Rendered */
 .rendered {
-  font-size: 22px;
+  font-size: 20px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,0.10);
   background: linear-gradient(180deg, #ffffff, #fafafa);
-
   width: 100%;
   box-sizing: border-box;
-
-  overflow-x: hidden;              /* κόβει side overflow */
+  overflow-x: hidden;
   overflow-y: visible;
-
-  overflow-wrap: anywhere;         /* σπάει μεγάλες “λέξεις/strings” */
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-/* όλα τα παιδιά να μην ξεφεύγουν */
-.rendered * {
-  box-sizing: border-box;
-  max-width: 100%;
-}
-
-/* ✅ “μαζεύουμε” τα defaults που συχνά προκαλούν overflow */
 .rendered h1, .rendered p { margin: 8px 0; }
 .rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
 .rendered li { margin: 4px 0; }
 .rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
 
-/* Level 2 demo boxes */
-.l2-box {
-  width: 100%;
-  border: 2px solid rgba(34,197,94,.45);
-  border-radius: 12px;
-  padding: 10px;
-  margin: 8px 0;
-  background: rgba(34,197,94,.06);
+/* Highlight for affected parts */
+.l2-focus{
+  outline: 3px solid rgba(34,197,94,.35);
+  border-radius: 10px;
+  padding: 4px 6px;
+  background: rgba(34,197,94,.10);
 }
-.l2-box__label {
-  font-size: 12px;
-  font-weight: 900;
-  color: #14532d;
-  margin-bottom: 6px;
-}
-.l2-note {
-  font-size: 12px;
-  color: #14532d;
-  margin-top: 8px;
+.l2-focus hr{
+  border: none;
+  border-top: 2px solid rgba(0,0,0,0.20);
+  margin: 10px 0;
 }
 
 .code {
@@ -334,8 +292,6 @@ body {
   background: #fff;
   cursor: pointer;
   font-weight: 800;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 .answer-btn.correct { border-color: rgba(34,197,94,0.45); background: rgba(34,197,94,0.10); }
 .answer-btn.wrong { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.10); }
@@ -343,26 +299,8 @@ body {
   margin-top: 12px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   font-size: 13px;
   color: #333;
-}
-
-
-.is-hidden { display: none !important; }
-
-
-/* Level 2 highlight */
-.l2-focus{
-  outline: 3px solid rgba(34,197,94,.35);
-  border-radius: 10px;
-  padding: 4px 6px;
-  background: rgba(34,197,94,.10);
-}
-.l2-focus hr{
-  border: none;
-  border-top: 2px solid rgba(0,0,0,0.20);
-  margin: 10px 0;
 }
