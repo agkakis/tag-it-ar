@@ -243,7 +243,7 @@ body {
 }
 
 .rendered h1, .rendered p { margin: 8px 0; }
-.rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
+.rendered ul, .rendered ol { margin: 16px 0; padding-left: 18px; }
 .rendered li { margin: 4px 0; }
 .rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
 
