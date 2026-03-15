@@ -23,6 +23,7 @@ body {
   backdrop-filter: blur(6px);
 }
 .orientation-overlay.is-visible { display: flex; pointer-events: auto; }
+
 .orientation-card {
   width: min(520px, 92vw);
   background: white;
@@ -32,6 +33,7 @@ body {
   text-align: center;
   border: 1px solid rgba(0,0,0,0.10);
 }
+
 .rotate-icon {
   width: 56px;
   height: 56px;
@@ -45,23 +47,45 @@ body {
   background: linear-gradient(135deg, #3b82f6, #22c55e);
 }
 
+/* Top bar */
 .topbar {
   padding: 14px 16px;
   border-bottom: 1px solid rgba(0,0,0,0.08);
   background: white;
 }
-.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .logo {
-  width: 42px; height: 42px; border-radius: 14px;
-  display: grid; place-items: center;
-  font-weight: 900; color: white;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: white;
   background: linear-gradient(135deg, #3b82f6, #22c55e);
   box-shadow: 0 10px 20px rgba(0,0,0,0.10);
 }
-.topbar h1 { margin: 0; font-size: 18px; }
-.topbar p { margin: 2px 0 0 0; color: #333; font-size: 13px; }
 
+.topbar h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.topbar p {
+  margin: 2px 0 0 0;
+  color: #333;
+  font-size: 13px;
+}
+
+/* Layout */
 .shell { padding: 14px; }
+
 .screen { display: none; }
 .screen.is-active { display: block; }
 
@@ -84,8 +108,17 @@ body {
   gap: 12px;
   margin-bottom: 10px;
 }
-.panel-title h2 { margin: 0; font-size: 16px; }
-.mini { margin: 4px 0 0 0; font-size: 12px; color: #444; }
+
+.panel-title h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.mini {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #444;
+}
 
 .badge {
   font-size: 12px;
@@ -95,6 +128,7 @@ body {
   color: #1d4ed8;
   border: 1px solid rgba(59,130,246,0.25);
 }
+
 .badge-green {
   background: rgba(34,197,94,0.12);
   color: #15803d;
@@ -112,9 +146,21 @@ body {
 }
 
 /* Home */
-.screen-title { margin: 4px 0 0 0; font-size: 18px; }
-.screen-subtitle { margin: 6px 0 12px 0; font-size: 13px; color: #444; }
-.menu-grid { display: grid; gap: 12px; }
+.screen-title {
+  margin: 4px 0 0 0;
+  font-size: 18px;
+}
+
+.screen-subtitle {
+  margin: 6px 0 12px 0;
+  font-size: 13px;
+  color: #444;
+}
+
+.menu-grid {
+  display: grid;
+  gap: 12px;
+}
 
 .menu-card {
   text-align: left;
@@ -127,16 +173,40 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.menu-title { font-weight: 900; font-size: 16px; }
-.menu-desc { margin-top: 4px; font-size: 13px; color: #333; }
+
+.menu-title {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.menu-desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #333;
+}
+
 .menu-card.blue { border-top: 6px solid #3b82f6; }
 .menu-card.green { border-top: 6px solid #22c55e; }
 .menu-card.purple { border-top: 6px solid #a855f7; }
-.note { margin: 12px 0 0 0; font-size: 12px; color: #555; }
 
-/* Layout */
-.layout { display: grid; gap: 14px; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .layout { grid-template-columns: 1fr 1fr; align-items: start; } }
+.note {
+  margin: 12px 0 0 0;
+  font-size: 12px;
+  color: #555;
+}
+
+.layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
 
 /* AR */
 .ar-container {
@@ -149,7 +219,10 @@ body {
   border: 2px dashed rgba(0,0,0,0.18);
   isolation: isolate;
 }
-@media (max-width: 380px) { .ar-container { height: 290px; } }
+
+@media (max-width: 380px) {
+  .ar-container { height: 290px; }
+}
 
 .ar-container a-scene {
   position: absolute !important;
@@ -158,27 +231,46 @@ body {
   height: 100% !important;
 }
 
+/* Κρατάμε το camera video + το render canvas */
 .ar-container a-scene video,
-.ar-container a-scene canvas { pointer-events: none !important; }
+.ar-container a-scene canvas {
+  pointer-events: none !important;
+}
 
 .ar-container a-scene video {
   position: absolute !important;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
   z-index: 1 !important;
   background: #000;
 }
+
 .ar-container a-scene canvas {
   position: absolute !important;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100% !important;
   height: 100% !important;
   z-index: 2 !important;
   background: transparent !important;
 }
 
+/* Κρύβουμε το built-in scanner UI του MindAR */
+.ar-container .mindar-ui-overlay,
+.ar-container .mindar-ui-scanning,
+.ar-container .mindar-ui-loading,
+.ar-container .mindar-ui-compatibility,
+.ar-container [class*="mindar-ui"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Το δικό σου custom reticle */
 .reticle {
   position: absolute;
   inset: 0;
@@ -187,22 +279,37 @@ body {
   z-index: 20;
   pointer-events: none;
 }
+
 .reticle-ring {
-  width: 120px; height: 120px;
+  width: 120px;
+  height: 120px;
   border-radius: 999px;
   border: 4px solid rgba(255,255,255,0.85);
   box-shadow: 0 0 0 8px rgba(59,130,246,0.18);
 }
+
 .reticle-dot {
   position: absolute;
-  width: 10px; height: 10px;
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
   background: rgba(255,255,255,0.95);
   box-shadow: 0 0 0 6px rgba(34,197,94,0.20);
 }
 
-.status { margin: 10px 0; display: grid; gap: 6px; font-size: 13px; }
-.buttons { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+.status {
+  margin: 10px 0;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.buttons {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 .btn {
   padding: 12px 14px;
@@ -214,18 +321,37 @@ body {
   min-width: 120px;
   background: #fff;
 }
-.btn.small { min-width: auto; padding: 8px 10px; font-size: 12px; }
+
+.btn.small {
+  min-width: auto;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
 .btn-primary {
   background: linear-gradient(135deg, #3b82f6, #22c55e);
   color: white;
   border: none;
   box-shadow: 0 12px 24px rgba(0,0,0,0.10);
 }
-.btn-secondary { background: #fff; color: #111; }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #fff;
+  color: #111;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 .result-block { margin-top: 12px; }
-.label { margin: 0 0 6px 0; font-size: 13px; color: #374151; }
+
+.label {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: #374151;
+}
 
 /* Rendered */
 .rendered {
@@ -242,23 +368,33 @@ body {
   word-break: break-word;
 }
 
-.rendered h1, .rendered p { margin: 8px 0; }
-.rendered ul, .rendered ol { margin: 8px 0; padding-left: 18px; }
-.rendered li { margin: 4px 0; }
-.rendered hr { border: none; border-top: 2px solid rgba(0,0,0,0.12); margin: 10px 0; }
+.rendered h1,
+.rendered p {
+  margin: 8px 0;
+}
+
+.rendered ul,
+.rendered ol {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+.rendered li {
+  margin: 4px 0;
+}
+
+.rendered hr {
+  border: none;
+  border-top: 2px solid rgba(0,0,0,0.12);
+  margin: 10px 0;
+}
 
 /* Highlight για το τμήμα που επηρεάζεται */
 .l2-focus {
   outline: 3px solid rgba(34,197,94,.35);
   border-radius: 10px;
-  padding: 8px 12px;
-  background: rgba(50,0,0,.10);
-}
-
-.l2-focus ol,
-.l2-focus ul{
-  margin: 8px 0;              /* κρατά το vertical spacing */
-  padding-left: 24px;         /* ✅ μεταφέρει 1.,2.,3. προς τα μέσα */
+  padding: 4px 6px;
+  background: rgba(34,197,94,.10);
 }
 
 .l2-focus hr {
@@ -289,8 +425,18 @@ body {
 
 /* Quiz */
 .quiz-box { margin-top: 10px; }
-.quiz-q { font-weight: 900; font-size: 15px; margin-bottom: 10px; }
-.quiz-answers { display: grid; gap: 10px; }
+
+.quiz-q {
+  font-weight: 900;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.quiz-answers {
+  display: grid;
+  gap: 10px;
+}
+
 .answer-btn {
   text-align: left;
   border: 1px solid rgba(0,0,0,0.12);
@@ -300,8 +446,17 @@ body {
   cursor: pointer;
   font-weight: 800;
 }
-.answer-btn.correct { border-color: rgba(34,197,94,0.45); background: rgba(34,197,94,0.10); }
-.answer-btn.wrong { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.10); }
+
+.answer-btn.correct {
+  border-color: rgba(34,197,94,0.45);
+  background: rgba(34,197,94,0.10);
+}
+
+.answer-btn.wrong {
+  border-color: rgba(239,68,68,0.45);
+  background: rgba(239,68,68,0.10);
+}
+
 .quiz-footer {
   margin-top: 12px;
   display: flex;
