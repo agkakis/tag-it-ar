@@ -43,19 +43,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const RESET_DELAY_MS = 2000;
 
-  function setStatus(msg) { statusText.textContent = msg; }
-  function setDetected(msg) { detectedTag.textContent = msg; }
-  function setHint(msg) { hintText.textContent = msg; }
+  function setStatus(msg) {
+    statusText.textContent = msg;
+  }
 
-  function hideCode() { codeWrap?.classList.add("is-hidden"); }
-  function showCode() { codeWrap?.classList.remove("is-hidden"); }
+  function setDetected(msg) {
+    detectedTag.textContent = msg;
+  }
+
+  function setHint(msg) {
+    hintText.textContent = msg;
+  }
+
+  function hideCode() {
+    codeWrap?.classList.add("is-hidden");
+  }
+
+  function showCode() {
+    codeWrap?.classList.remove("is-hidden");
+  }
 
   function escapeHtml(str) {
     return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   }
 
   function showScreen(which) {
-    for (const el of [homeScreen, scanScreen, quizScreen]) el.classList.remove("is-active");
+    for (const el of [homeScreen, scanScreen, quizScreen]) {
+      el.classList.remove("is-active");
+    }
     which.classList.add("is-active");
   }
 
@@ -63,9 +78,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.innerHeight >= window.innerWidth;
   }
 
-  function showOverlay() { overlay.classList.add("is-visible"); }
-  function hideOverlay() { overlay.classList.remove("is-visible"); }
-  function enforcePortraitUI() { if (isPortrait()) hideOverlay(); else showOverlay(); }
+  function showOverlay() {
+    overlay.classList.add("is-visible");
+  }
+
+  function hideOverlay() {
+    overlay.classList.remove("is-visible");
+  }
+
+  function enforcePortraitUI() {
+    if (isPortrait()) hideOverlay();
+    else showOverlay();
+  }
 
   async function tryLockPortrait() {
     try {
@@ -79,7 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function checkFileReachable(path) {
     const res = await fetch(path, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
+    if (!res.ok) {
+      throw new Error(`${path} HTTP ${res.status} (λείπει ή λάθος όνομα)`);
+    }
   }
 
   // -----------------------
@@ -99,8 +125,16 @@ document.addEventListener("DOMContentLoaded", () => {
       contentLabel: "Κείμενο (απόδοση):",
       defaultHtml: "<p>Hello World!</p>",
       indexToTag: {
-        0: "b", 1: "i", 2: "u", 3: "mark", 4: "del",
-        5: "ins", 6: "sub", 7: "sup", 8: "strong", 9: "em",
+        0: "b",
+        1: "i",
+        2: "u",
+        3: "mark",
+        4: "del",
+        5: "ins",
+        6: "sub",
+        7: "sup",
+        8: "strong",
+        9: "em",
       },
       hints: {
         b: "Έντονα γράμματα.",
@@ -142,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
 
-      // base: σκέτο κείμενο (μία γραμμή)
       defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
 
       apply(tag) {
@@ -153,25 +186,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const focus = (name) => (name === tag ? "l2-focus" : "");
 
-        // 1) Title — μόνο όταν tag==h1 γίνεται <h1>
         const titleBlock =
           tag === "h1"
             ? `<h1 class="${focus("h1")}">${title}</h1>`
             : `<div class="${focus("h1")}">${title}</div>`;
 
-        // 2) Divider — μόνο όταν tag==hr
         const hrBlock =
           tag === "hr"
             ? `<div class="${focus("hr")}"><hr></div>`
             : ``;
 
-        // 3) Sentence — p affects only the explanatory sentence.
-        // br: κάνει “μορφή λίστας” (σπάει σε γραμμές μετά το ":" και βάζει items σε νέες γραμμές)
         let sentenceBlock = "";
         let listBlock = "";
 
         if (tag === "br") {
-          // ✅ br as "line-list"
           sentenceBlock = `
             <div class="l2-focus">
               ${sentenceA} ${sentenceB}<br>
@@ -180,7 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
               ${items[2]}
             </div>
           `.trim();
-          // Όταν κάνουμε br-list, ΔΕΝ βάζουμε επιπλέον listBlock (για να μην διπλασιάζεται)
           listBlock = "";
         } else {
           const sentenceClass = tag === "p" ? "l2-focus" : "";
@@ -189,13 +216,15 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<p class="${sentenceClass}">${sentenceA} ${sentenceB}</p>`
               : `<div class="${sentenceClass}">${sentenceA} ${sentenceB}</div>`;
 
-          // 4) List — ul/ol επηρεάζουν ΜΟΝΟ τη λίστα
           if (tag === "ul") {
-            listBlock = `<ul class="${focus("ul")}">${items.map(x => `<li>${x}</li>`).join("")}</ul>`;
+            listBlock = `<ul class="${focus("ul")}">${items
+              .map((x) => `<li>${x}</li>`)
+              .join("")}</ul>`;
           } else if (tag === "ol") {
-            listBlock = `<ol class="${focus("ol")}">${items.map(x => `<li>${x}</li>`).join("")}</ol>`;
+            listBlock = `<ol class="${focus("ol")}">${items
+              .map((x) => `<li>${x}</li>`)
+              .join("")}</ol>`;
           } else {
-            // default inline list
             listBlock = `<div>${items[0]}, ${items[1]} και ${items[2]}.</div>`;
           }
         }
@@ -220,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let arSystem = null;
   let isRunning = false;
   let resetTimer = null;
+  let mindarUiObserver = null;
 
   function clearReset() {
     if (resetTimer) clearTimeout(resetTimer);
@@ -241,18 +271,61 @@ document.addEventListener("DOMContentLoaded", () => {
     codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
 
-    // στο L2 κρύβουμε τον κώδικα από πριν/στο reset
     if (currentLevel.key === "L2") hideCode();
     else showCode();
   }
 
+  function removeMindARScannerUI() {
+    const selectors = [
+      ".mindar-ui-overlay",
+      ".mindar-ui-scanning",
+      ".mindar-ui-loading",
+      ".mindar-ui-compatibility",
+      "[class*='mindar-ui']",
+      "[id*='mindar-ui']"
+    ];
+
+    selectors.forEach((selector) => {
+      const nodes = document.querySelectorAll(selector);
+      nodes.forEach((node) => {
+        node.remove();
+      });
+    });
+  }
+
+  function startMindARUiBlocker() {
+    stopMindARUiBlocker();
+
+    removeMindARScannerUI();
+
+    mindarUiObserver = new MutationObserver(() => {
+      removeMindARScannerUI();
+    });
+
+    mindarUiObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  function stopMindARUiBlocker() {
+    if (mindarUiObserver) {
+      mindarUiObserver.disconnect();
+      mindarUiObserver = null;
+    }
+  }
+
   function stopAR() {
     try {
+      stopMindARUiBlocker();
+
       if (!arSystem) return;
+
       isRunning = false;
       clearReset();
       arSystem.stop();
       stopMindarCameraTracks();
+
       startBtn.disabled = false;
       stopBtn.disabled = true;
     } catch (_) {}
@@ -260,11 +333,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function destroyScene() {
     stopAR();
+
     if (sceneEl) {
       sceneEl.remove();
       sceneEl = null;
       arSystem = null;
     }
+
+    removeMindARScannerUI();
   }
 
   function buildScene(mindFile) {
@@ -291,6 +367,8 @@ document.addEventListener("DOMContentLoaded", () => {
     sceneEl = s;
 
     sceneEl.addEventListener("loaded", () => {
+      removeMindARScannerUI();
+
       arSystem = sceneEl.systems["mindar-image-system"];
       wireTargets();
       setStatus("Έτοιμο – πάτα «Έναρξη»");
@@ -308,6 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       e.addEventListener("targetFound", () => {
         clearReset();
+
         const tag = currentLevel.indexToTag[i];
         if (!tag) return;
 
@@ -315,7 +394,6 @@ document.addEventListener("DOMContentLoaded", () => {
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
-        // στο L2 δείχνουμε κώδικα μόνο όταν σκανάρει
         if (currentLevel.key === "L2") showCode();
 
         const html = currentLevel.apply(tag);
@@ -333,24 +411,26 @@ document.addEventListener("DOMContentLoaded", () => {
   async function warmupCameraOnce() {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" } },
-      audio: false
+      audio: false,
     });
-    stream.getTracks().forEach(t => t.stop());
+    stream.getTracks().forEach((t) => t.stop());
   }
 
   function findMindarStreamVideo() {
     const vids = Array.from(arWrap.querySelectorAll("video"));
-    return vids.find(v => v.srcObject instanceof MediaStream) || null;
+    return vids.find((v) => v.srcObject instanceof MediaStream) || null;
   }
 
   function stopMindarCameraTracks() {
     const v = findMindarStreamVideo();
     const stream = v?.srcObject;
+
     if (stream instanceof MediaStream) {
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach((t) => t.stop());
       v.srcObject = null;
       return true;
     }
+
     return false;
   }
 
@@ -373,12 +453,17 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus("Φόρτωση…");
         return;
       }
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Η συσκευή δεν υποστηρίζει κάμερα (getUserMedia).");
+      }
 
       setStatus("Ζητάω άδεια κάμερας…");
       await warmupCameraOnce();
 
       setStatus("Ξεκινάω σάρωση…");
+
+      startMindARUiBlocker();
       arSystem.start();
       isRunning = true;
 
@@ -387,17 +472,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setTimeout(() => {
         if (!isRunning) return;
+
+        removeMindARScannerUI();
+
         const v = findMindarStreamVideo();
         if (v) {
           v.style.display = "block";
           v.style.opacity = "1";
           v.style.visibility = "visible";
         }
+
         setStatus("Σάρωση ενεργή");
       }, 600);
 
+      setTimeout(removeMindARScannerUI, 50);
+      setTimeout(removeMindARScannerUI, 300);
+      setTimeout(removeMindARScannerUI, 1000);
     } catch (e) {
       console.error(e);
+
+      stopMindARUiBlocker();
       isRunning = false;
       setStatus("Αποτυχία εκκίνησης");
       setHint(e?.message ? e.message : String(e));
@@ -416,7 +510,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
-    // στο Level 2 κρύβουμε τον κώδικα από πριν
     if (currentLevel.key === "L2") hideCode();
     else showCode();
 
@@ -436,12 +529,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function enterHome() {
     stopAR();
     destroyScene();
-    topSubtitle.textContent = "Μάθε HTML με κάρτες AR.";
+    topSubtitle.textContent = "Μάθε HTML με κάρτες AR!";
     showScreen(homeScreen);
   }
 
   function handleOrientationChange() {
     enforcePortraitUI();
+
     if (!isPortrait() && isRunning) {
       stopAR();
       setStatus("Σταμάτησε — γύρισε σε portrait για να συνεχίσεις");
@@ -478,7 +572,12 @@ document.addEventListener("DOMContentLoaded", () => {
     quizBox.innerHTML = `
       <div class="quiz-q">${quizIndex + 1}/${QUIZ.length}: ${escapeHtml(item.q)}</div>
       <div class="quiz-answers">
-        ${item.a.map((txt, idx) => `<button class="answer-btn" type="button" data-idx="${idx}">${escapeHtml(txt)}</button>`).join("")}
+        ${item.a
+          .map(
+            (txt, idx) =>
+              `<button class="answer-btn" type="button" data-idx="${idx}">${escapeHtml(txt)}</button>`
+          )
+          .join("")}
       </div>
       <div class="quiz-footer">
         <div><strong>Σκορ:</strong> ${quizScore}</div>
@@ -489,7 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
     quizLocked = false;
 
     const buttons = quizBox.querySelectorAll(".answer-btn");
-    buttons.forEach(btn => {
+    buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
         if (quizLocked) return;
         quizLocked = true;
@@ -497,7 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const idx = Number(btn.getAttribute("data-idx"));
         const correct = item.correct;
 
-        buttons.forEach(b => {
+        buttons.forEach((b) => {
           const bi = Number(b.getAttribute("data-idx"));
           if (bi === correct) b.classList.add("correct");
           if (bi === idx && idx !== correct) b.classList.add("wrong");
@@ -508,6 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
           quizIndex++;
+
           if (quizIndex >= QUIZ.length) {
             quizBox.innerHTML = `
               <div class="quiz-q">Τέλος! 🎉</div>
@@ -517,10 +617,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 <button id="goHomeAfterQuiz" class="btn btn-secondary" type="button">Αρχική</button>
               </div>
             `;
+
             document.getElementById("restartQuiz").addEventListener("click", () => {
-              quizIndex = 0; quizScore = 0;
+              quizIndex = 0;
+              quizScore = 0;
               renderQuiz();
             });
+
             document.getElementById("goHomeAfterQuiz").addEventListener("click", enterHome);
           } else {
             renderQuiz();
