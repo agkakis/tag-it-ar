@@ -159,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mindFile: "./targets_level1.mind",
       contentLabel: "Κείμενο (απόδοση):",
       defaultHtml: "<p>Hello World!</p>",
+      defaultCode: "<p>Hello World!</p>",
       indexToTag: {
         0: "b",
         1: "i",
@@ -188,6 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tag === "sup") return "<p>m<sup>2</sup></p>";
         return `<p><${tag}>Hello World!</${tag}></p>`;
       },
+      codeExample(tag) {
+        if (tag === "sub") return "<p>H<sub>2</sub>O</p>";
+        if (tag === "sup") return "<p>m<sup>2</sup></p>";
+        return `<p><${tag}>Hello World!</${tag}></p>`;
+      },
     },
 
     L2: {
@@ -198,6 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
       helper: "Κάθε κάρτα εφαρμόζει ένα tag στο ίδιο κείμενο (χωρίς before/after).",
       mindFile: "./targets_level2.mind",
       contentLabel: "Κείμενο (με επίδραση):",
+      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
+      defaultCode: "Σάρωσε μια κάρτα για να δεις το αντίστοιχο HTML tag.",
       indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
       hints: {
         h1: "Κύριος τίτλος: ξεχωρίζει το θέμα της σελίδας.",
@@ -207,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ul: "Λίστα bullets (απλή απαρίθμηση).",
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
-      defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
+
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
@@ -268,6 +276,44 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `.trim();
       },
+
+      codeExample(tag) {
+        switch (tag) {
+          case "h1":
+            return `<h1>Η πρώτη μου ιστοσελίδα!</h1>`;
+
+          case "p":
+            return `<p>Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:</p>`;
+
+          case "br":
+            return `Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:<br>
+Κείμενα<br>
+Εικόνες<br>
+Ήχους`;
+
+          case "hr":
+            return `Η πρώτη μου ιστοσελίδα!
+<hr>
+Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει:`;
+
+          case "ul":
+            return `<ul>
+  <li>Κείμενα</li>
+  <li>Εικόνες</li>
+  <li>Ήχους</li>
+</ul>`;
+
+          case "ol":
+            return `<ol>
+  <li>Κείμενα</li>
+  <li>Εικόνες</li>
+  <li>Ήχους</li>
+</ol>`;
+
+          default:
+            return "Σάρωσε μια κάρτα για να δεις το αντίστοιχο HTML tag.";
+        }
+      },
     },
   };
 
@@ -295,11 +341,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setDetected("—");
     setHint("—");
     rendered.innerHTML = currentLevel.defaultHtml;
-    codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
+    codeBox.innerHTML = escapeHtml(currentLevel.defaultCode || currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
 
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
+    showCode();
   }
 
   function removeMindARScannerUI() {
@@ -436,11 +481,14 @@ document.addEventListener("DOMContentLoaded", () => {
         setHint(currentLevel.hints[tag] || "—");
         setStatus("Εντοπίστηκε κάρτα");
 
-        if (currentLevel.key === "L2") showCode();
-
         const html = currentLevel.apply(tag);
+        const code = currentLevel.codeExample
+          ? currentLevel.codeExample(tag)
+          : html;
+
         rendered.innerHTML = html;
-        codeBox.innerHTML = escapeHtml(html);
+        codeBox.innerHTML = escapeHtml(code);
+        showCode();
       });
 
       e.addEventListener("targetLost", () => {
@@ -534,9 +582,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showScreen(scanScreen);
 
-    if (currentLevel.key === "L2") hideCode();
-    else showCode();
-
     startBtn.disabled = true;
     stopBtn.disabled = true;
     setStatus("Φόρτωση…");
@@ -546,8 +591,9 @@ document.addEventListener("DOMContentLoaded", () => {
     buildScene(currentLevel.mindFile);
 
     rendered.innerHTML = currentLevel.defaultHtml;
-    codeBox.innerHTML = escapeHtml(currentLevel.defaultHtml);
+    codeBox.innerHTML = escapeHtml(currentLevel.defaultCode || currentLevel.defaultHtml);
     contentLabel.textContent = currentLevel.contentLabel;
+    showCode();
   }
 
   function enterHome() {
@@ -582,110 +628,107 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 800);
 
   const QUIZ = [
-  // Level 1
-  {
-    q: "Τι κάνει το <b>;",
-    a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"],
-    correct: 1
-  },
-  {
-    q: "Τι κάνει το <i>;",
-    a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <u>;",
-    a: ["Υπογράμμιση", "Τίτλο", "Λίστα"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <mark>;",
-    a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"],
-    correct: 1
-  },
-  {
-    q: "Τι κάνει το <del>;",
-    a: ["Δείχνει διαγραμμένο κείμενο", "Κάνει το κείμενο έντονο", "Βάζει bullets"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <ins>;",
-    a: ["Δείχνει νέο/προστιθέμενο κείμενο", "Σβήνει κείμενο", "Βάζει τίτλο"],
-    correct: 0
-  },
-  {
-    q: "Πού χρησιμοποιείται συνήθως το <sub>;",
-    a: ["Σε τίτλους", "Σε κάτω δείκτη όπως H₂O", "Σε αριθμημένες λίστες"],
-    correct: 1
-  },
-  {
-    q: "Πού χρησιμοποιείται συνήθως το <sup>;",
-    a: ["Σε πάνω δείκτη όπως m²", "Σε bullets", "Σε παραγράφους"],
-    correct: 0
-  },
-  {
-    q: "Τι δηλώνει το <strong>;",
-    a: ["Απλή αλλαγή γραμμής", "Σημαντικό περιεχόμενο", "Εικόνα"],
-    correct: 1
-  },
-  {
-    q: "Τι δηλώνει το <em>;",
-    a: ["Έμφαση στο κείμενο", "Αριθμημένη λίστα", "Οριζόντια γραμμή"],
-    correct: 0
-  },
-
-  // Level 2
-  {
-    q: "Τι κάνει το <h1>;",
-    a: ["Δημιουργεί κύριο τίτλο", "Δημιουργεί λίστα", "Κάνει underline"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <p>;",
-    a: ["Εισάγει εικόνα", "Ορίζει παράγραφο", "Κάνει bold"],
-    correct: 1
-  },
-  {
-    q: "Τι κάνει το <br>;",
-    a: ["Δημιουργεί νέα γραμμή", "Δημιουργεί τίτλο", "Διαγράφει κείμενο"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <hr>;",
-    a: ["Προσθέτει σύνδεσμο", "Βάζει οριζόντια γραμμή διαχωρισμού", "Κάνει italic"],
-    correct: 1
-  },
-  {
-    q: "Τι κάνει το <ul>;",
-    a: ["Δημιουργεί λίστα με bullets", "Δημιουργεί τίτλο", "Κάνει highlight"],
-    correct: 0
-  },
-  {
-    q: "Τι κάνει το <ol>;",
-    a: ["Δημιουργεί αριθμημένη λίστα", "Δημιουργεί παράγραφο", "Βάζει υπογράμμιση"],
-    correct: 0
-  },
-  {
-    q: "Ποιο tag είναι πιο κατάλληλο για κύριο τίτλο σελίδας;",
-    a: ["<h1>", "<br>", "<mark>"],
-    correct: 0
-  },
-  {
-    q: "Ποιο tag είναι πιο κατάλληλο για απλό κείμενο πρότασης;",
-    a: ["<p>", "<hr>", "<sup>"],
-    correct: 0
-  },
-  {
-    q: "Ποιο tag θα χρησιμοποιούσες για λίστα βημάτων με σειρά;",
-    a: ["<ul>", "<ol>", "<em>"],
-    correct: 1
-  },
-  {
-    q: "Ποιο tag θα χρησιμοποιούσες για απλή απαρίθμηση χωρίς σειρά;",
-    a: ["<ol>", "<ul>", "<h1>"],
-    correct: 1
-  }
-];
+    {
+      q: "Τι κάνει το <b>;",
+      a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"],
+      correct: 1
+    },
+    {
+      q: "Τι κάνει το <i>;",
+      a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <u>;",
+      a: ["Υπογράμμιση", "Τίτλο", "Λίστα"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <mark>;",
+      a: ["Σημαντικό", "Επισήμανση (highlight)", "Νέα γραμμή"],
+      correct: 1
+    },
+    {
+      q: "Τι κάνει το <del>;",
+      a: ["Δείχνει διαγραμμένο κείμενο", "Κάνει το κείμενο έντονο", "Βάζει bullets"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <ins>;",
+      a: ["Δείχνει νέο/προστιθέμενο κείμενο", "Σβήνει κείμενο", "Βάζει τίτλο"],
+      correct: 0
+    },
+    {
+      q: "Πού χρησιμοποιείται συνήθως το <sub>;",
+      a: ["Σε τίτλους", "Σε κάτω δείκτη όπως H₂O", "Σε αριθμημένες λίστες"],
+      correct: 1
+    },
+    {
+      q: "Πού χρησιμοποιείται συνήθως το <sup>;",
+      a: ["Σε πάνω δείκτη όπως m²", "Σε bullets", "Σε παραγράφους"],
+      correct: 0
+    },
+    {
+      q: "Τι δηλώνει το <strong>;",
+      a: ["Απλή αλλαγή γραμμής", "Σημαντικό περιεχόμενο", "Εικόνα"],
+      correct: 1
+    },
+    {
+      q: "Τι δηλώνει το <em>;",
+      a: ["Έμφαση στο κείμενο", "Αριθμημένη λίστα", "Οριζόντια γραμμή"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <h1>;",
+      a: ["Δημιουργεί κύριο τίτλο", "Δημιουργεί λίστα", "Κάνει underline"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <p>;",
+      a: ["Εισάγει εικόνα", "Ορίζει παράγραφο", "Κάνει bold"],
+      correct: 1
+    },
+    {
+      q: "Τι κάνει το <br>;",
+      a: ["Δημιουργεί νέα γραμμή", "Δημιουργεί τίτλο", "Διαγράφει κείμενο"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <hr>;",
+      a: ["Προσθέτει σύνδεσμο", "Βάζει οριζόντια γραμμή διαχωρισμού", "Κάνει italic"],
+      correct: 1
+    },
+    {
+      q: "Τι κάνει το <ul>;",
+      a: ["Δημιουργεί λίστα με bullets", "Δημιουργεί τίτλο", "Κάνει highlight"],
+      correct: 0
+    },
+    {
+      q: "Τι κάνει το <ol>;",
+      a: ["Δημιουργεί αριθμημένη λίστα", "Δημιουργεί παράγραφο", "Βάζει υπογράμμιση"],
+      correct: 0
+    },
+    {
+      q: "Ποιο tag είναι πιο κατάλληλο για κύριο τίτλο σελίδας;",
+      a: ["<h1>", "<br>", "<mark>"],
+      correct: 0
+    },
+    {
+      q: "Ποιο tag είναι πιο κατάλληλο για απλό κείμενο πρότασης;",
+      a: ["<p>", "<hr>", "<sup>"],
+      correct: 0
+    },
+    {
+      q: "Ποιο tag θα χρησιμοποιούσες για λίστα βημάτων με σειρά;",
+      a: ["<ul>", "<ol>", "<em>"],
+      correct: 1
+    },
+    {
+      q: "Ποιο tag θα χρησιμοποιούσες για απλή απαρίθμηση χωρίς σειρά;",
+      a: ["<ol>", "<ul>", "<h1>"],
+      correct: 1
+    }
+  ];
 
   let quizIndex = 0;
   let quizScore = 0;
