@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showDesktopOverlay() {
+    desktopOverlay.hidden = false;
     desktopOverlay.classList.add("is-visible");
     appRoot.classList.add("is-hidden");
     portraitOverlay.classList.remove("is-visible");
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function hideDesktopOverlay() {
     desktopOverlay.classList.remove("is-visible");
+    desktopOverlay.hidden = true;
     appRoot.classList.remove("is-hidden");
   }
 
