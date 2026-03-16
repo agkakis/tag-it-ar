@@ -4,16 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const portraitOverlay = document.getElementById("portraitOverlay");
   const appRoot = document.getElementById("appRoot");
 
-  function isMobileDevice() {
+  function isMobileOrTabletDevice() {
     const ua = navigator.userAgent || navigator.vendor || window.opera || "";
-    const mobileUA =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+    const handheldOrTabletUA =
+      /Android|webOS|iPhone|iPad|iPod|Tablet|BlackBerry|IEMobile|Opera Mini/i.test(ua);
 
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
     const noHover = window.matchMedia("(hover: none)").matches;
-    const narrowScreen = window.innerWidth <= 1024;
 
-    return mobileUA || (coarsePointer && noHover && narrowScreen);
+    return handheldOrTabletUA || (coarsePointer && noHover);
   }
 
   function showDesktopOverlay() {
@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
     appRoot.classList.remove("is-hidden");
   }
 
-  function isSupportedMobile() {
-    return isMobileDevice();
+  function isSupportedTouchDevice() {
+    return isMobileOrTabletDevice();
   }
 
-  if (!isSupportedMobile()) {
+  if (!isSupportedTouchDevice()) {
     showDesktopOverlay();
     return;
   }
@@ -556,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleOrientationChange() {
-    if (!isSupportedMobile()) {
+    if (!isSupportedTouchDevice()) {
       showDesktopOverlay();
       return;
     }
