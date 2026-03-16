@@ -13,6 +13,16 @@
 </head>
 
 <body>
+  <!-- Desktop / unsupported overlay -->
+  <div id="desktopOverlay" class="device-overlay" aria-hidden="true">
+    <div class="device-card">
+      <div class="device-icon">📱</div>
+      <h2>Μη διαθέσιμο ακόμα</h2>
+      <p>Η εφαρμογή δεν είναι ακόμα διαθέσιμη σε αυτήν την έκδοση.</p>
+      <p><strong>Χρησιμοποίησε κινητή συσκευή</strong> για να συνεχίσεις.</p>
+    </div>
+  </div>
+
   <!-- Portrait-only overlay -->
   <div id="portraitOverlay" class="orientation-overlay" aria-hidden="true">
     <div class="orientation-card">
@@ -23,120 +33,121 @@
     </div>
   </div>
 
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">T</div>
-      <div>
-        <h1>Tag-it-AR</h1>
-        <p id="topSubtitle">Μάθε HTML με κάρτες AR!</p>
-      </div>
-    </div>
-  </header>
-
-  <main class="shell">
-    <!-- HOME -->
-    <section id="homeScreen" class="screen is-active">
-      <div class="panel">
-        <h2 class="screen-title">Διάλεξε επίπεδο</h2>
-        <p class="screen-subtitle">Σάρωσε 1 κάρτα κάθε φορά και δες αμέσως το αποτέλεσμα.</p>
-
-        <div class="menu-grid">
-          <button id="goL1" class="menu-card blue" type="button">
-            <div class="menu-title">Level 1</div>
-            <div class="menu-desc">Μορφοποίηση κειμένου (μπλε κάρτες)</div>
-          </button>
-
-          <button id="goL2" class="menu-card green" type="button">
-            <div class="menu-title">Level 2</div>
-            <div class="menu-desc">Δομή κειμένου (πράσινες κάρτες)</div>
-          </button>
-
-          <button id="goQuiz" class="menu-card purple" type="button">
-            <div class="menu-title">Quiz</div>
-            <div class="menu-desc">Έλεγξε τι έμαθες (χωρίς κάμερα)</div>
-          </button>
+  <div id="appRoot">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h1>Tag-it-AR</h1>
+          <p id="topSubtitle">Μάθε HTML με κάρτες AR!</p>
         </div>
-
-        <p class="note">
-          Για χρήση κάμερας απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
-        </p>
       </div>
-    </section>
+    </header>
 
-    <!-- SCAN -->
-    <section id="scanScreen" class="screen">
-      <div class="layout">
-        <section class="panel panel-scan">
+    <main class="shell">
+      <!-- HOME -->
+      <section id="homeScreen" class="screen is-active">
+        <div class="panel">
+          <h2 class="screen-title">Διάλεξε επίπεδο</h2>
+          <p class="screen-subtitle">Σάρωσε 1 κάρτα κάθε φορά και δες αμέσως το αποτέλεσμα.</p>
+
+          <div class="menu-grid">
+            <button id="goL1" class="menu-card blue" type="button">
+              <div class="menu-title">Level 1</div>
+              <div class="menu-desc">Μορφοποίηση κειμένου (μπλε κάρτες)</div>
+            </button>
+
+            <button id="goL2" class="menu-card green" type="button">
+              <div class="menu-title">Level 2</div>
+              <div class="menu-desc">Δομή κειμένου (πράσινες κάρτες)</div>
+            </button>
+
+            <button id="goQuiz" class="menu-card purple" type="button">
+              <div class="menu-title">Quiz</div>
+              <div class="menu-desc">Έλεγξε τι έμαθες (χωρίς κάμερα)</div>
+            </button>
+          </div>
+
+          <p class="note">
+            Για χρήση κάμερας απαιτείται <strong>HTTPS</strong> (π.χ. GitHub Pages).
+          </p>
+        </div>
+      </section>
+
+      <!-- SCAN -->
+      <section id="scanScreen" class="screen">
+        <div class="layout">
+          <section class="panel panel-scan">
+            <div class="panel-title">
+              <div>
+                <h2 id="scanTitle">Σάρωση κάρτας</h2>
+                <p class="mini" id="scanMini">—</p>
+              </div>
+              <button id="backHomeFromScan" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
+            </div>
+
+            <div class="helper" id="helperText">
+              Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.
+            </div>
+
+            <div class="ar-container" id="arWrap">
+              <div class="reticle" aria-hidden="true">
+                <div class="reticle-ring"></div>
+                <div class="reticle-dot"></div>
+              </div>
+            </div>
+
+            <div class="status">
+              <div><strong>Κατάσταση:</strong> <span id="statusText">—</span></div>
+              <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
+              <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
+            </div>
+
+            <div class="buttons">
+              <button id="startBtn" class="btn btn-primary" type="button" disabled>Έναρξη</button>
+              <button id="stopBtn" class="btn btn-secondary" type="button" disabled>Διακοπή</button>
+            </div>
+          </section>
+
+          <section class="panel panel-result">
+            <div class="panel-title">
+              <h2>Αποτέλεσμα</h2>
+              <span class="badge badge-green">HTML</span>
+            </div>
+
+            <div class="result-block">
+              <p class="label" id="contentLabel">Κείμενο:</p>
+              <div id="rendered" class="rendered">—</div>
+            </div>
+
+            <div class="result-block">
+              <p class="label">Κώδικας HTML:</p>
+              <pre id="codeWrap" class="code"><code id="codeBox">—</code></pre>
+            </div>
+
+            <div class="tip">
+              Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το περιεχόμενο επιστρέφει στο αρχικό.
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- QUIZ -->
+      <section id="quizScreen" class="screen">
+        <div class="panel">
           <div class="panel-title">
             <div>
-              <h2 id="scanTitle">Σάρωση κάρτας</h2>
-              <p class="mini" id="scanMini">—</p>
+              <h2>Quiz</h2>
+              <p class="mini">Διάλεξε τη σωστή απάντηση.</p>
             </div>
-            <button id="backHomeFromScan" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
+            <button id="backHomeFromQuiz" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
           </div>
 
-          <div class="helper" id="helperText">
-            Στόχευσε την κάρτα μέσα στον κύκλο και κράτα το κινητό σταθερό.
-          </div>
-
-          <div class="ar-container" id="arWrap">
-            <!-- a-scene inserted by app.js -->
-            <div class="reticle" aria-hidden="true">
-              <div class="reticle-ring"></div>
-              <div class="reticle-dot"></div>
-            </div>
-          </div>
-
-          <div class="status">
-            <div><strong>Κατάσταση:</strong> <span id="statusText">—</span></div>
-            <div><strong>Εντοπίστηκε:</strong> <span id="detectedTag">—</span></div>
-            <div><strong>Μήνυμα:</strong> <span id="hintText">—</span></div>
-          </div>
-
-          <div class="buttons">
-            <button id="startBtn" class="btn btn-primary" type="button" disabled>Έναρξη</button>
-            <button id="stopBtn" class="btn btn-secondary" type="button" disabled>Διακοπή</button>
-          </div>
-        </section>
-
-        <section class="panel panel-result">
-          <div class="panel-title">
-            <h2>Αποτέλεσμα</h2>
-            <span class="badge badge-green">HTML</span>
-          </div>
-
-          <div class="result-block">
-            <p class="label" id="contentLabel">Κείμενο:</p>
-            <div id="rendered" class="rendered">—</div>
-          </div>
-
-<!--      <div class="result-block">
-          <p class="label">Κώδικας HTML:</p>
-          <pre id="codeWrap" class="code"><code id="codeBox">—</code></pre>  
-          </div>
- -->
-          <div class="tip">
-            Όταν φύγει η κάρτα, μετά από <strong>2 δευτερόλεπτα</strong> το περιεχόμενο επιστρέφει στο αρχικό.
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <!-- QUIZ -->
-    <section id="quizScreen" class="screen">
-      <div class="panel">
-        <div class="panel-title">
-          <div>
-            <h2>Quiz</h2>
-            <p class="mini">Διάλεξε τη σωστή απάντηση.</p>
-          </div>
-          <button id="backHomeFromQuiz" class="btn btn-secondary small" type="button">⬅ Αρχική</button>
+          <div id="quizBox" class="quiz-box"></div>
         </div>
-
-        <div id="quizBox" class="quiz-box"></div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
