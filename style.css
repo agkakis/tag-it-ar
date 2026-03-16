@@ -394,7 +394,7 @@ body {
 }
 
 .rendered {
-  font-size: 20px;
+  font-size: 17px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,0.10);
@@ -405,7 +405,7 @@ body {
   overflow-y: visible;
   overflow-wrap: anywhere;
   word-break: break-word;
-  line-height: 1.35;
+  line-height: 1.20;
 }
 
 .rendered h1,
