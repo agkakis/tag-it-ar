@@ -1,4 +1,43 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Device gating
+  const desktopOverlay = document.getElementById("desktopOverlay");
+  const portraitOverlay = document.getElementById("portraitOverlay");
+  const appRoot = document.getElementById("appRoot");
+
+  function isMobileDevice() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera || "";
+    const mobileUA =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const noHover = window.matchMedia("(hover: none)").matches;
+    const narrowScreen = window.innerWidth <= 1024;
+
+    return mobileUA || (coarsePointer && noHover && narrowScreen);
+  }
+
+  function showDesktopOverlay() {
+    desktopOverlay.classList.add("is-visible");
+    appRoot.classList.add("is-hidden");
+    portraitOverlay.classList.remove("is-visible");
+  }
+
+  function hideDesktopOverlay() {
+    desktopOverlay.classList.remove("is-visible");
+    appRoot.classList.remove("is-hidden");
+  }
+
+  function isSupportedMobile() {
+    return isMobileDevice();
+  }
+
+  if (!isSupportedMobile()) {
+    showDesktopOverlay();
+    return;
+  }
+
+  hideDesktopOverlay();
+
   // Screens
   const homeScreen = document.getElementById("homeScreen");
   const scanScreen = document.getElementById("scanScreen");
@@ -34,9 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
-
-  // Portrait overlay
-  const overlay = document.getElementById("portraitOverlay");
 
   // Quiz UI
   const quizBox = document.getElementById("quizBox");
@@ -79,11 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showOverlay() {
-    overlay.classList.add("is-visible");
+    portraitOverlay.classList.add("is-visible");
   }
 
   function hideOverlay() {
-    overlay.classList.remove("is-visible");
+    portraitOverlay.classList.remove("is-visible");
   }
 
   function enforcePortraitUI() {
@@ -108,9 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // -----------------------
-  // Level configurations
-  // -----------------------
   const LEVEL2_TEXT =
     "Η πρώτη μου ιστοσελίδα! Αυτή είναι η πρώτη μου ιστοσελίδα και περιέχει: Κείμενα, εικόνες και ήχους.";
 
@@ -163,10 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
       helper: "Κάθε κάρτα εφαρμόζει ένα tag στο ίδιο κείμενο (χωρίς before/after).",
       mindFile: "./targets_level2.mind",
       contentLabel: "Κείμενο (με επίδραση):",
-
-      // σειρά targets: <h1>, <p>, <br>, <hr>, <ul>, <ol>
       indexToTag: { 0: "h1", 1: "p", 2: "br", 3: "hr", 4: "ul", 5: "ol" },
-
       hints: {
         h1: "Κύριος τίτλος: ξεχωρίζει το θέμα της σελίδας.",
         p: "Παράγραφος: ομαδοποιεί προτάσεις και δίνει spacing.",
@@ -175,9 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ul: "Λίστα bullets (απλή απαρίθμηση).",
         ol: "Αριθμημένη λίστα (σειρά/βήματα).",
       },
-
       defaultHtml: `<div>${LEVEL2_TEXT}</div>`,
-
       apply(tag) {
         const title = "Η πρώτη μου ιστοσελίδα!";
         const sentenceA = "Αυτή είναι η πρώτη μου ιστοσελίδα";
@@ -241,9 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  // -----------------------
-  // AR engine
-  // -----------------------
   let currentLevel = null;
   let sceneEl = null;
   let arSystem = null;
@@ -282,20 +307,17 @@ document.addEventListener("DOMContentLoaded", () => {
       ".mindar-ui-loading",
       ".mindar-ui-compatibility",
       "[class*='mindar-ui']",
-      "[id*='mindar-ui']"
+      "[id*='mindar-ui']",
     ];
 
     selectors.forEach((selector) => {
       const nodes = document.querySelectorAll(selector);
-      nodes.forEach((node) => {
-        node.remove();
-      });
+      nodes.forEach((node) => node.remove());
     });
   }
 
   function startMindARUiBlocker() {
     stopMindARUiBlocker();
-
     removeMindARScannerUI();
 
     mindarUiObserver = new MutationObserver(() => {
@@ -313,6 +335,24 @@ document.addEventListener("DOMContentLoaded", () => {
       mindarUiObserver.disconnect();
       mindarUiObserver = null;
     }
+  }
+
+  function findMindarStreamVideo() {
+    const vids = Array.from(arWrap.querySelectorAll("video"));
+    return vids.find((v) => v.srcObject instanceof MediaStream) || null;
+  }
+
+  function stopMindarCameraTracks() {
+    const v = findMindarStreamVideo();
+    const stream = v?.srcObject;
+
+    if (stream instanceof MediaStream) {
+      stream.getTracks().forEach((t) => t.stop());
+      v.srcObject = null;
+      return true;
+    }
+
+    return false;
   }
 
   function stopAR() {
@@ -416,24 +456,6 @@ document.addEventListener("DOMContentLoaded", () => {
     stream.getTracks().forEach((t) => t.stop());
   }
 
-  function findMindarStreamVideo() {
-    const vids = Array.from(arWrap.querySelectorAll("video"));
-    return vids.find((v) => v.srcObject instanceof MediaStream) || null;
-  }
-
-  function stopMindarCameraTracks() {
-    const v = findMindarStreamVideo();
-    const stream = v?.srcObject;
-
-    if (stream instanceof MediaStream) {
-      stream.getTracks().forEach((t) => t.stop());
-      v.srcObject = null;
-      return true;
-    }
-
-    return false;
-  }
-
   async function startAR() {
     if (isRunning) return;
 
@@ -534,6 +556,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleOrientationChange() {
+    if (!isSupportedMobile()) {
+      showDesktopOverlay();
+      return;
+    }
+
+    hideDesktopOverlay();
     enforcePortraitUI();
 
     if (!isPortrait() && isRunning) {
@@ -551,9 +579,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(enforcePortraitUI, 250);
   setTimeout(enforcePortraitUI, 800);
 
-  // -----------------------
-  // Quiz (mini)
-  // -----------------------
   const QUIZ = [
     { q: "Τι κάνει το <b>;", a: ["Πλάγια γράμματα", "Έντονα γράμματα", "Υπογράμμιση"], correct: 1 },
     { q: "Τι κάνει το <i>;", a: ["Πλάγια γράμματα", "Διαγραφή", "Highlight"], correct: 0 },
@@ -647,7 +672,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuiz();
   }
 
-  // Wiring UI
   goL1.addEventListener("click", () => enterScan("L1"));
   goL2.addEventListener("click", () => enterScan("L2"));
   goQuiz.addEventListener("click", enterQuiz);
